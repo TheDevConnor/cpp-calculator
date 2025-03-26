@@ -16,6 +16,7 @@ Node::Expr *Parser::parse(std::vector<Lexer::Token> tks) {
       break;
   }
 
+  delete p;
   return new ProgramExpr(program);
 }
 

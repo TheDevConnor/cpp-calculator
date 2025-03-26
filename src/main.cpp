@@ -24,5 +24,6 @@ int main(int argc, char *argv[]) {
   Node::Expr *program = Parser::parse(tks);
   program->debug();
 
+  delete program;
   return 0;
 }
