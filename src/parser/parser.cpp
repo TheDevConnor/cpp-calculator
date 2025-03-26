@@ -27,6 +27,8 @@ Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
   case Lexer::Kind::star:
   case Lexer::Kind::slash:
     return BindingPower::multiplicative;
+  case Lexer::Kind::l_paren:
+    return BindingPower::group;
   default:
     return BindingPower::default_value;
   }

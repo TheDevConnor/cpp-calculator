@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
   (void)argv;
 
   // NOTE: Grouping to the left segfaults
-  const char *input = "1 + -8 * 2";
+  const char *input = "1 + (-8 * 2)";
   Lexer::lexer lx;
   lx.init_lexer(&lx, input);
 
