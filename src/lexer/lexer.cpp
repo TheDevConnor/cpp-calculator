@@ -6,7 +6,6 @@ using namespace Lexer;
 
 char Lexer::lexer::advance() {
   current++;
-  start++;
   return current[-1];
 }
 
@@ -18,18 +17,18 @@ Token Lexer::lexer::make_token(Kind k) {
 
   tk.kind = k;
   tk.start = start;
-  tk.value = std::string(current - 1, start);
+  tk.value = std::string(start, current);
 
   return tk;
 }
 
 Token Lexer::lexer::number() {
-  while (std::isdigit(peek(0)))
+  while (isdigit(peek(0)))
     advance();
 
   if (peek(0) == '.') {
     advance();
-    while (std::isdigit(peek(0)))
+    while (isdigit(peek(0)))
       advance();
   }
 
@@ -65,7 +64,7 @@ Token Lexer::lexer::scan_token() {
 
   char c = advance();
 
-  if (std::isdigit(c))
+  if (isdigit(c))
     return number();
 
   switch (c) {
