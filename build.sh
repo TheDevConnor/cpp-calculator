@@ -16,9 +16,8 @@ die() {
 build() {
   type="$1"
   BUILD_TYPE="$type"
-  mkdir -p "$type" || die
-  cmake -G Ninja -DCMAKE_BUILD_TYPE="$type" -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -B "$type" -S . || die
-  ninja -C "$type" || die
+  cmake -S . -B "$type" -DCMAKE_BUILD_TYPE="$type" -DCMAKE_EXPORT_COMPILE_COMMANDS=1 || die
+  cmake --build "$type"
 }
 
 # Clean function

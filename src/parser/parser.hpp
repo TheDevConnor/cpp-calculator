@@ -2,6 +2,7 @@
 
 #include "../ast/ast.hpp"
 #include "../lexer/lexer.hpp"
+#include "../memory/memory.hpp"
 #include <vector>
 
 namespace Parser {
@@ -18,20 +19,20 @@ inline Lexer::lexer lx;
 }; // namespace Parser
 
 struct Parser::PStruct {
+  Allocator::AreanAllocator arena;
   std::vector<Lexer::Token> tks;
   size_t pos;
 
-  bool had_tokens(PStruct *psr) { return psr->pos < psr->tks.size(); }
-  Lexer::Token peek(PStruct *psr, int offset = 0) {
-    return psr->tks[psr->pos + offset];
-  }
-  Lexer::Token current(PStruct *psr) { return psr->tks[psr->pos]; }
-  Lexer::Token advance(PStruct *psr) { return psr->tks[psr->pos++]; }
+  bool had_tokens() { return pos < tks.size(); }
+  Lexer::Token peek(size_t offset = 0) { return tks[pos + offset]; }
+  Lexer::Token current() { return tks[pos]; }
+  Lexer::Token advance() { return tks[pos++]; }
 };
 
 namespace Parser {
-Parser::PStruct *init_parser(std::vector<Lexer::Token> tks);
-Node::Expr *parse(std::vector<Lexer::Token> tks);
+Parser::PStruct *init_parser(std::vector<Lexer::Token> tks,
+                             Allocator::AreanAllocator &a);
+Node::Expr *parse(std::vector<Lexer::Token> tks, Allocator::AreanAllocator &a);
 Node::Expr *parse_expr(PStruct *psr, BindingPower bp);
 
 Node::Expr *nud(PStruct *psr);

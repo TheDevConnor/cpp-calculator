@@ -46,11 +46,7 @@ public:
     std::cout << "Number Node: " << value << std::endl;
   }
 
-  double eval() const override {
-    if (value.find(".") == true)
-      return std::stof(value);
-    return std::stoi(value);
-  }
+  double eval() const override { return std::stod(value); }
 };
 
 struct Binary : public Node::Expr {

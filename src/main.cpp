@@ -2,13 +2,16 @@
 #include <vector>
 
 #include "lexer/lexer.hpp"
+#include "memory/memory.hpp"
 #include "parser/parser.hpp"
 
 int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;
 
-  const char *input = "0.3 - (1 + 3)";
+  Allocator::AreanAllocator arena(1024);
+
+  const char *input = "1 + (9 / 3) - 4 * 8";
   Lexer::lexer lx;
   lx.init_lexer(&lx, input);
 
@@ -20,11 +23,10 @@ int main(int argc, char *argv[]) {
       break;
   }
 
-  Node::Expr *program = Parser::parse(tks);
-  program->debug();
+  Node::Expr *program = Parser::parse(tks, arena);
 
   std::cout << program->eval() << std::endl;
 
-  delete program;
+  arena.reset();
   return 0;
 }

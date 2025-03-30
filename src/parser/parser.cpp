@@ -2,22 +2,23 @@
 #include "../ast/ast.hpp"
 #include "../ast/expr.hpp"
 
-Parser::PStruct *Parser::init_parser(std::vector<Lexer::Token> tks) {
-  return new PStruct{tks, 0};
+Parser::PStruct *Parser::init_parser(std::vector<Lexer::Token> tks,
+                                     Allocator::AreanAllocator &a) {
+  return new PStruct{a, std::move(tks), 0};
 }
 
-Node::Expr *Parser::parse(std::vector<Lexer::Token> tks) {
-  PStruct *p = init_parser(tks);
+Node::Expr *Parser::parse(std::vector<Lexer::Token> tks,
+                          Allocator::AreanAllocator &a) {
+  PStruct *p = init_parser(std::move(tks), a);
 
-  std::vector<Node::Expr *> program;
-  while (p->had_tokens(p)) {
-    program.push_back(parse_expr(p, BindingPower::default_value));
-    if (p->current(p).kind == Lexer::Kind::eof)
+  std::vector<Node::Expr *> pr;
+  while (p->had_tokens()) {
+    pr.push_back(parse_expr(p, BindingPower::default_value));
+    if (p->current().kind == Lexer::Kind::eof)
       break;
   }
 
-  delete p;
-  return new ProgramExpr(program);
+  return p->arena.emplace<ProgramExpr>(pr);
 }
 
 Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
@@ -36,7 +37,7 @@ Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
 }
 
 Node::Expr *Parser::nud(PStruct *psr) {
-  switch (psr->current(psr).kind) {
+  switch (psr->current().kind) {
   case Lexer::Kind::number:
     return primary(psr);
   case Lexer::Kind::minus:
@@ -44,20 +45,20 @@ Node::Expr *Parser::nud(PStruct *psr) {
   case Lexer::Kind::l_paren:
     return grouping(psr);
   default:
-    psr->advance(psr);
+    psr->advance();
     return nullptr;
   }
 }
 
 Node::Expr *Parser::led(PStruct *psr, Node::Expr *left, BindingPower bp) {
-  switch (psr->current(psr).kind) {
+  switch (psr->current().kind) {
   case Lexer::Kind::plus:
   case Lexer::Kind::minus:
   case Lexer::Kind::star:
   case Lexer::Kind::slash:
     return binary(psr, left, bp);
   default:
-    psr->advance(psr);
+    psr->advance();
     return left;
   }
 }
