@@ -53,10 +53,16 @@ public:
     (void)indent;
     std::cout << "Binary Node: " << std::endl;
     std::cout << "     op: " << op << std::endl;
-    std::cout << "   left: ";
-    left->debug();
-    std::cout << "  right: ";
-    right->debug();
+    if (left == nullptr) {
+    } else {
+      std::cout << "   left: \n\t";
+      left->debug();
+    }
+    if (right == nullptr) {
+    } else {
+      std::cout << "  right: \n\t";
+      right->debug();
+    }
     std::cout << std::endl;
   }
 
@@ -77,9 +83,9 @@ public:
 
   void debug(int indent = 0) const override {
     (void)indent;
-    std::cout << "Unary: " << std::endl;
-    std::cout << "     op: " << op << std::endl;
-    std::cout << "  right: ";
+    std::cout << "Unary Node: " << std::endl;
+    std::cout << "      op: " << op << std::endl;
+    std::cout << "   right: ";
     right->debug();
     std::cout << std::endl;
   }
@@ -95,7 +101,7 @@ public:
 
   void debug(int indent = 0) const override {
     (void)indent;
-    std::cout << "Group: ";
+    std::cout << "Group: \n\t";
     expr->debug();
     std::cout << std::endl;
   }
