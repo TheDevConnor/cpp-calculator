@@ -2,7 +2,6 @@
 
 #include "../ast/ast.hpp"
 #include "../lexer/lexer.hpp"
-#include <iostream>
 #include <vector>
 
 namespace Parser {
@@ -28,13 +27,6 @@ struct Parser::PStruct {
   }
   Lexer::Token current(PStruct *psr) { return psr->tks[psr->pos]; }
   Lexer::Token advance(PStruct *psr) { return psr->tks[psr->pos++]; }
-  Lexer::Token expect(PStruct *psr, Lexer::Kind kind, std::string msg) {
-    if (current(psr).kind != kind) {
-      std::cerr << msg << std::endl;
-      return current(psr);
-    }
-    return advance(psr);
-  }
 };
 
 namespace Parser {

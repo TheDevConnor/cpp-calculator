@@ -1,3 +1,4 @@
+#include <iostream>
 #include <vector>
 
 #include "lexer/lexer.hpp"
@@ -7,13 +8,11 @@ int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;
 
-  // NOTE: Grouping to the left segfaults
-  const char *input = "(1 + 0.45) / 2";
+  const char *input = "0.3 - (1 + 3)";
   Lexer::lexer lx;
   lx.init_lexer(&lx, input);
 
   std::vector<Lexer::Token> tks;
-
   while (true) {
     Lexer::Token tk = lx.scan_token();
     tks.push_back(tk);
@@ -23,6 +22,8 @@ int main(int argc, char *argv[]) {
 
   Node::Expr *program = Parser::parse(tks);
   program->debug();
+
+  std::cout << program->eval() << std::endl;
 
   delete program;
   return 0;

@@ -4,9 +4,7 @@
 #include <string>
 
 Node::Expr *Parser::parse_expr(PStruct *psr, BindingPower bp) {
-  std::cout << "Current -> " << psr->current(psr).value << std::endl;
   Node::Expr *left = nud(psr);
-  std::cout << "Current -> " << psr->current(psr).value << std::endl;
 
   while (get_bp(psr->current(psr).kind) > bp) {
     left = led(psr, left, get_bp(psr->current(psr).kind));
@@ -40,7 +38,7 @@ Node::Expr *Parser::binary(PStruct *psr, Node::Expr *left, BindingPower bp) {
 
 Node::Expr *Parser::grouping(PStruct *psr) {
   psr->advance(psr); // consume the (
-  Node::Expr *expr = parse_expr(psr, BindingPower::group);
-  // We don't need to advance because our lookups do it for us already
+  Node::Expr *expr = parse_expr(psr, BindingPower::default_value);
+  psr->advance(psr);
   return new Group(expr);
 }

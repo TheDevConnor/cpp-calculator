@@ -10,7 +10,6 @@ add_compile_options(-Wall -Wpedantic -Wextra -Wundef -Wwrite-strings -Wredundant
 set(CALCULATOR_HEADER_FILES
     src/lexer/lexer.hpp
     src/parser/parser.hpp
-    src/interpreter/interpreter.hpp
 )
 
 set(CALCULATOR_SOURCE_FILES
@@ -18,7 +17,6 @@ set(CALCULATOR_SOURCE_FILES
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/parser/expr.cpp
-    src/interpreter/interpreter.cpp
 )
 
 # Create executable

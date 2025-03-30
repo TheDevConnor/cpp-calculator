@@ -2,6 +2,7 @@
 
 #include "ast.hpp"
 #include <iostream>
+#include <string>
 #include <vector>
 
 struct ProgramExpr : public Node::Expr {
@@ -17,6 +18,14 @@ public:
     for (Node::Expr *res : program) {
       res->debug();
     }
+  }
+
+  double eval() const override {
+    double finale = 0;
+    for (Node::Expr *res : program) {
+      finale = res->eval();
+    }
+    return finale;
   }
 
   ~ProgramExpr() {
@@ -35,6 +44,12 @@ public:
   void debug(int indent = 0) const override {
     (void)indent;
     std::cout << "Number Node: " << value << std::endl;
+  }
+
+  double eval() const override {
+    if (value.find(".") == true)
+      return std::stof(value);
+    return std::stoi(value);
   }
 };
 
@@ -66,6 +81,25 @@ public:
     std::cout << std::endl;
   }
 
+  double eval() const override {
+    double lhs = left->eval();
+    double rhs = right->eval();
+
+    switch (op[0]) {
+    case '+':
+      return lhs + rhs;
+    case '-':
+      return lhs - rhs;
+    case '*':
+      return lhs * rhs;
+    case '/':
+      return lhs / rhs;
+    default:
+      std::cerr << "Unknown operator '" + op + "'" << std::endl;
+      exit(-1);
+    }
+  };
+
   ~Binary() {
     delete left;
     delete right;
@@ -90,6 +124,17 @@ public:
     std::cout << std::endl;
   }
 
+  double eval() const override {
+    double rhs = right->eval();
+    switch (op[0]) {
+    case '-':
+      return -rhs;
+    default:
+      std::cerr << "Unknown operator '" + op + "'" << std::endl;
+      exit(-1);
+    }
+  }
+
   ~Unary() { delete right; }
 };
 
@@ -105,6 +150,8 @@ public:
     expr->debug();
     std::cout << std::endl;
   }
+
+  double eval() const override { return expr->eval(); }
 
   ~Group() { delete expr; }
 };
