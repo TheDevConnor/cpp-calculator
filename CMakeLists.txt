@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(calculator LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++-19")
 add_compile_options(-Wall -Wpedantic -Wextra -Wundef -Wwrite-strings -Wredundant-decls -Wdisabled-optimization 
                 -Wdouble-promotion -Wmissing-declarations -Wconversion -Wstrict-overflow=2 -fstack-protector-all -Wvla -O3)
 
