@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
-
 #include <new>
 
 // NOTE: remove any small buffers after resize.
@@ -28,7 +27,7 @@ struct Buffer {
 };
 
 class AreanAllocator {
-public:
+ public:
   explicit AreanAllocator(std::size_t size) : capacity(size) {
     buffer = Buffer(size).malloc();
     head = buffer;
@@ -39,7 +38,8 @@ public:
   void *alloc(std::size_t size,
               std::size_t alinment = alignof(std::max_align_t));
 
-  template <typename T, typename... Args> T *emplace(Args &&...args) {
+  template <typename T, typename... Args>
+  T *emplace(Args &&...args) {
     auto p = static_cast<T *>(alloc(sizeof(T), alignof(T)));
     new (p) T(std::forward<Args>(args)...);
     return p;
@@ -61,10 +61,10 @@ public:
     }
   }
 
-private:
+ private:
   std::size_t capacity = 0;
   std::size_t offset = 0;
   Buffer *buffer = 0;
   Buffer *head = 0;
 };
-}; // namespace Allocator
+};  // namespace Allocator

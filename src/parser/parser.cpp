@@ -3,23 +3,17 @@
 #include "../ast/ast.hpp"
 #include "../ast/expr.hpp"
 
-Parser::PStruct *Parser::init_parser(std::vector<Lexer::Token> tks,
-                                     Allocator::AreanAllocator &a) {
-  return new PStruct{a, std::move(tks), 0};
-}
-
-Node::Expr *Parser::parse(std::vector<Lexer::Token> tks,
-                          Allocator::AreanAllocator &a) {
-  PStruct *p = init_parser(std::move(tks), a);
+Node::Expr *Parser::parse(std::vector<Lexer::Token> tks) {
+  PStruct p = PStruct{tks, 0};
 
   std::vector<Node::Expr *> pr;
-  while (p->had_tokens()) {
-    pr.push_back(parse_expr(p, BindingPower::default_value));
-    if (p->current().kind == Lexer::Kind::eof)
+  while (p.had_tokens()) {
+    pr.push_back(parse_expr(&p, BindingPower::default_value));
+    if (p.current().kind == Lexer::Kind::eof)
       break;
   }
 
-  return p->arena.emplace<ProgramExpr>(pr);
+  return new ProgramExpr(pr);
 }
 
 Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {

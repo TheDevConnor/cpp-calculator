@@ -1,25 +1,24 @@
 #pragma once
 
+#include <vector>
+
 #include "../ast/ast.hpp"
 #include "../lexer/lexer.hpp"
-#include "../memory/memory.hpp"
-#include <vector>
 
 namespace Parser {
 enum BindingPower {
   default_value = 0,
-  additive = 1,       // + -
-  multiplicative = 2, // * /
-  exponent = 3,       // ^
-  group = 4,          // ()
+  additive = 1,        // + -
+  multiplicative = 2,  // * /
+  exponent = 3,        // ^
+  group = 4,           // ()
 };
 
 struct PStruct;
 inline Lexer::lexer lx;
-}; // namespace Parser
+};  // namespace Parser
 
 struct Parser::PStruct {
-  Allocator::AreanAllocator arena;
   std::vector<Lexer::Token> tks;
   size_t pos;
 
@@ -30,9 +29,7 @@ struct Parser::PStruct {
 };
 
 namespace Parser {
-Parser::PStruct *init_parser(std::vector<Lexer::Token> tks,
-                             Allocator::AreanAllocator &a);
-Node::Expr *parse(std::vector<Lexer::Token> tks, Allocator::AreanAllocator &a);
+Node::Expr *parse(std::vector<Lexer::Token> tks);
 Node::Expr *parse_expr(PStruct *psr, BindingPower bp);
 
 Node::Expr *nud(PStruct *psr);
@@ -46,4 +43,4 @@ Node::Expr *grouping(PStruct *psr);
 
 // led functions
 Node::Expr *binary(PStruct *psr, Node::Expr *left, BindingPower bp);
-}; // namespace Parser
+};  // namespace Parser
