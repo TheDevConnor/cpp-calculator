@@ -21,6 +21,8 @@ set(CALCULATOR_SOURCE_FILES
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/parser/expr.cpp
+
+    src/eval/eval.cpp
 )
 
 # Create executable

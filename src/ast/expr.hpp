@@ -1,12 +1,13 @@
 #pragma once
 
-#include "ast.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "ast.hpp"
+
 struct ProgramExpr : public Node::Expr {
-public:
+ public:
   std::vector<Node::Expr *> program;
 
   ProgramExpr(std::vector<Node::Expr *> program) : program(program) {
@@ -20,14 +21,7 @@ public:
     }
   }
 
-  double eval() const override {
-    double finale = 0;
-    for (Node::Expr *res : program) {
-      finale = res->eval();
-    }
-    return finale;
-  }
-
+  double eval() const override;
   ~ProgramExpr() {
     for (Node::Expr *s : program) {
       delete s;
@@ -36,7 +30,7 @@ public:
 };
 
 struct Number : public Node::Expr {
-public:
+ public:
   std::string value;
 
   Number(std::string value) : value(value) { kind = NodeKind::number; }
@@ -46,11 +40,11 @@ public:
     std::cout << "Number Node: " << value << std::endl;
   }
 
-  double eval() const override { return std::stod(value); }
+  double eval() const override;
 };
 
 struct Binary : public Node::Expr {
-public:
+ public:
   Node::Expr *left;
   Node::Expr *right;
   std::string op;
@@ -77,25 +71,7 @@ public:
     std::cout << std::endl;
   }
 
-  double eval() const override {
-    double lhs = left->eval();
-    double rhs = right->eval();
-
-    switch (op[0]) {
-    case '+':
-      return lhs + rhs;
-    case '-':
-      return lhs - rhs;
-    case '*':
-      return lhs * rhs;
-    case '/':
-      return lhs / rhs;
-    default:
-      std::cerr << "Unknown operator '" + op + "'" << std::endl;
-      exit(-1);
-    }
-  };
-
+  double eval() const override;
   ~Binary() {
     delete left;
     delete right;
@@ -103,7 +79,7 @@ public:
 };
 
 struct Unary : public Node::Expr {
-public:
+ public:
   Node::Expr *right;
   std::string op;
 
@@ -120,22 +96,12 @@ public:
     std::cout << std::endl;
   }
 
-  double eval() const override {
-    double rhs = right->eval();
-    switch (op[0]) {
-    case '-':
-      return -rhs;
-    default:
-      std::cerr << "Unknown operator '" + op + "'" << std::endl;
-      exit(-1);
-    }
-  }
-
+  double eval() const override;
   ~Unary() { delete right; }
 };
 
 struct Group : public Node::Expr {
-public:
+ public:
   Node::Expr *expr;
 
   Group(Node::Expr *expr) : expr(expr) { kind = NodeKind::group; }
@@ -147,7 +113,6 @@ public:
     std::cout << std::endl;
   }
 
-  double eval() const override { return expr->eval(); }
-
+  double eval() const override;
   ~Group() { delete expr; }
 };

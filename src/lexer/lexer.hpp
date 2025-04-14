@@ -3,7 +3,18 @@
 #include <string>
 
 namespace Lexer {
-enum Kind { number, plus, minus, star, slash, l_paren, r_paren, eof, unknown };
+enum Kind {
+  number,
+  plus,
+  minus,
+  star,
+  slash,
+  mod,
+  l_paren,
+  r_paren,
+  eof,
+  unknown,
+};
 
 struct Token {
   Kind kind;
@@ -12,11 +23,11 @@ struct Token {
 };
 
 class lexer {
-public:
+ public:
   void init_lexer(lexer *lx, const char *source);
   Token scan_token();
 
-private:
+ private:
   const char *current;
   const char *start;
 
@@ -29,4 +40,4 @@ private:
 
   void skip_whitespace();
 };
-}; // namespace Lexer
+};  // namespace Lexer

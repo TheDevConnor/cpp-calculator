@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "lexer.hpp"
+
+#include <iostream>
 
 using namespace Lexer;
 
@@ -39,13 +39,13 @@ void Lexer::lexer::skip_whitespace() {
   for (;;) {
     char c = peek(0);
     switch (c) {
-    case ' ':
-    case '\r':
-    case '\t':
-      advance();
-      break;
-    default:
-      return;
+      case ' ':
+      case '\r':
+      case '\t':
+        advance();
+        break;
+      default:
+        return;
     }
   }
 }
@@ -68,18 +68,20 @@ Token Lexer::lexer::scan_token() {
     return number();
 
   switch (c) {
-  case '+':
-    return make_token(Kind::plus);
-  case '-':
-    return make_token(Kind::minus);
-  case '*':
-    return make_token(Kind::star);
-  case '/':
-    return make_token(Kind::slash);
-  case '(':
-    return make_token(Kind::l_paren);
-  case ')':
-    return make_token(Kind::r_paren);
+    case '+':
+      return make_token(Kind::plus);
+    case '-':
+      return make_token(Kind::minus);
+    case '*':
+      return make_token(Kind::star);
+    case '/':
+      return make_token(Kind::slash);
+    case '%':
+      return make_token(Kind::mod);
+    case '(':
+      return make_token(Kind::l_paren);
+    case ')':
+      return make_token(Kind::r_paren);
   }
 
   std::cerr << "Token not found '" << c << "'" << std::endl;
