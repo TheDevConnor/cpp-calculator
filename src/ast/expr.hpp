@@ -4,33 +4,33 @@
 #include <string>
 #include <vector>
 
+#include "../memory/memory.hpp"
 #include "ast.hpp"
 
 struct ProgramExpr : public Node::Expr {
- public:
-  std::vector<Node::Expr *> program;
+public:
+  Node::Expr **exprs;
+  std::size_t size;
 
-  ProgramExpr(std::vector<Node::Expr *> program) : program(program) {
+  ProgramExpr(const std::vector<Node::Expr *> &list,
+              Allocator::ArenaAllocator &arena)
+      : size(list.size()) {
+    exprs = static_cast<Node::Expr **>(arena.alloc(size * sizeof(Node::Expr *), alignof(Node::Expr *)));
+    std::copy(list.begin(), list.end(), exprs);
     kind = NodeKind::program;
   }
 
   void debug(int indent = 0) const override {
     (void)indent;
-    for (Node::Expr *res : program) {
-      res->debug();
-    }
+    for (std::size_t i = 0; i < size; i++)
+      exprs[i]->debug();
   }
 
   double eval() const override;
-  ~ProgramExpr() {
-    for (Node::Expr *s : program) {
-      delete s;
-    }
-  }
 };
 
 struct Number : public Node::Expr {
- public:
+public:
   std::string value;
 
   Number(std::string value) : value(value) { kind = NodeKind::number; }
@@ -44,7 +44,7 @@ struct Number : public Node::Expr {
 };
 
 struct Binary : public Node::Expr {
- public:
+public:
   Node::Expr *left;
   Node::Expr *right;
   std::string op;
@@ -72,14 +72,10 @@ struct Binary : public Node::Expr {
   }
 
   double eval() const override;
-  ~Binary() {
-    delete left;
-    delete right;
-  }
 };
 
 struct Unary : public Node::Expr {
- public:
+public:
   Node::Expr *right;
   std::string op;
 
@@ -97,11 +93,10 @@ struct Unary : public Node::Expr {
   }
 
   double eval() const override;
-  ~Unary() { delete right; }
 };
 
 struct Group : public Node::Expr {
- public:
+public:
   Node::Expr *expr;
 
   Group(Node::Expr *expr) : expr(expr) { kind = NodeKind::group; }
@@ -114,5 +109,4 @@ struct Group : public Node::Expr {
   }
 
   double eval() const override;
-  ~Group() { delete expr; }
 };

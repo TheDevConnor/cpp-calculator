@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(calculator LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++-19")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 add_compile_options(-Wall -Wpedantic -Wextra -Wundef -Wwrite-strings -Wredundant-decls -Wdisabled-optimization 
                 -Wdouble-promotion -Wmissing-declarations -Wconversion -Wstrict-overflow=2 -fstack-protector-all -Wvla -O3)
 
@@ -17,7 +17,6 @@ set(CALCULATOR_HEADER_FILES
 set(CALCULATOR_SOURCE_FILES
     src/main.cpp
 
-    src/memory/memory.cpp
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/parser/expr.cpp
