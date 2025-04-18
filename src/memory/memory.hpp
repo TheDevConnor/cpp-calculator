@@ -14,22 +14,21 @@ struct Buffer {
   Buffer(std::size_t s, std::size_t alignment = 1024) {
     alignment = std::min(s, alignment);
     ptr = static_cast<std::byte *>(std::aligned_alloc(alignment, s));
-    if (!ptr)
-      throw std::bad_alloc();
+    if (!ptr) throw std::bad_alloc();
     size = s;
   }
 };
 
 class ArenaAllocator {
 public:
-  explicit ArenaAllocator(std::size_t size) : capacity(size) {
+  explicit ArenaAllocator(std::size_t size) {
     buffer = new Buffer(size);
     head = buffer;
   }
 
   void *alloc(std::size_t size,
               std::size_t alinment = alignof(std::max_align_t)) {
-    if ((size > capacity / 4) || (alinment > capacity / 4)) {
+    if ((size > buffer->size / 4) || (alinment > buffer->size / 4)) {
       Buffer *large = new Buffer(size, alinment);
       large->next = buffer;
       buffer = large;
@@ -39,13 +38,13 @@ public:
     while (true) {
       std::size_t aligned_offset = (offset + (alinment - 1)) & ~(alinment - 1);
 
-      if (aligned_offset + size > capacity) {
+      if (aligned_offset + size > buffer->size) {
         if (buffer->next) {
           buffer = buffer->next;
           offset = 0;
           continue;
         }
-        buffer->next = new Buffer(capacity * 2);
+        buffer->next = new Buffer(buffer->size * 2);
         buffer = buffer->next;
         offset = 0;
         continue;
@@ -79,7 +78,6 @@ public:
   }
 
 private:
-  std::size_t capacity = 0;
   std::size_t offset = 0;
   Buffer *buffer = nullptr;
   Buffer *head = nullptr;
