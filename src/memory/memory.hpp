@@ -11,28 +11,43 @@ struct Buffer {
   Buffer *next = 0;
   std::byte *ptr = 0;
 
-  Buffer(std::size_t s, std::size_t alignment = 1024) {
+  static Buffer *create(std::size_t s, std::size_t alignment = 1024) {
     alignment = std::min(s, alignment);
-    ptr = static_cast<std::byte *>(std::aligned_alloc(alignment, s));
-    if (!ptr) throw std::bad_alloc();
-    size = s;
+    // Align the whole block to max(alignment, alignof(Buffer))
+    std::size_t buffer_align = std::max(alignment, alignof(Buffer));
+    std::size_t total_size = sizeof(Buffer) + s + buffer_align;
+
+    void *raw = std::aligned_alloc(buffer_align, total_size);
+    if (!raw)
+      throw std::bad_alloc();
+
+    // Placement-new the Buffer object
+    Buffer *buf = new (raw) Buffer();
+    std::byte *raw_bytes = reinterpret_cast<std::byte *>(new (raw) Buffer());
+
+    // Compute aligned pointer for buffer data after Buffer struct
+    std::size_t struct_end = reinterpret_cast<std::size_t>(raw_bytes + sizeof(Buffer));
+    std::size_t aligned_data = (struct_end + alignment - 1) & ~(alignment - 1);
+    buf->ptr = reinterpret_cast<std::byte *>(aligned_data);
+    buf->size = s;
+
+    return buf;
   }
 };
 
 class ArenaAllocator {
 public:
   explicit ArenaAllocator(std::size_t size) {
-    buffer = new Buffer(size);
+    buffer = Buffer::create(size);
     head = buffer;
   }
 
-  void *alloc(std::size_t size,
-              std::size_t alinment = alignof(std::max_align_t)) {
+  void *alloc(std::size_t size, std::size_t alinment = alignof(std::max_align_t)) {
     if ((size > buffer->size / 4) || (alinment > buffer->size / 4)) {
-      Buffer *large = new Buffer(size, alinment);
-      large->next = buffer;
-      buffer = large;
-      return large->ptr;
+      Buffer *new_buffer = Buffer::create(size, alinment);
+      new_buffer->next = buffer->next;
+      buffer->next = new_buffer;
+      return new_buffer->ptr;
     }
 
     while (true) {
@@ -44,7 +59,7 @@ public:
           offset = 0;
           continue;
         }
-        buffer->next = new Buffer(buffer->size * 2);
+        buffer->next = Buffer::create(buffer->size);
         buffer = buffer->next;
         offset = 0;
         continue;
@@ -71,8 +86,7 @@ public:
     reset();
     while (buffer != nullptr) {
       auto next = buffer->next;
-      free(buffer->ptr);
-      delete buffer;
+      std::free(buffer);
       buffer = next;
     }
   }

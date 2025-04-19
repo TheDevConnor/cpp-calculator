@@ -12,8 +12,7 @@ int main(int argc, char *argv[]) {
   (void)argc;
   (void)argv;
 
-  ArenaAllocator arena(1024);
-
+  ArenaAllocator arena(16);
   const char *input = "5 * 3 * (3 + 5) / 5";
 
   Lexer::lexer lx;
