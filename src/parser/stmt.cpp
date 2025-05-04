@@ -1,12 +1,13 @@
 #include "../ast/stmt.hpp"
+
 #include "parser.hpp"
 
 Node::Stmt *Parser::parse_stmt(PStruct *psr) {
   switch (psr->current().kind) {
-  case Lexer::Kind::var:
-    return var_stmt(psr);
-  default:
-    return expr_stmt(psr);
+    case Lexer::Kind::var:
+      return var_stmt(psr);
+    default:
+      return expr_stmt(psr);
   }
 }
 

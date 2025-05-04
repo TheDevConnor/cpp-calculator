@@ -1,8 +1,9 @@
 #include "lexer.hpp"
-#include "../error/error.hpp"
 
 #include <cctype>
 #include <string>
+
+#include "../error/error.hpp"
 
 using namespace Lexer;
 
@@ -78,18 +79,17 @@ int Lexer::lexer::skip_whitespace() {
   for (;;) {
     char c = peek(0);
     switch (c) {
-    case '\n':
-      advance();
-      count++;
-      break;
-    case ' ':
-    case '\r':
-    case '\t':
-      advance();
-      count++;
-      break;
-    default:
-      return count;
+      case '\n':
+        advance();
+        break;
+      case ' ':
+      case '\r':
+      case '\t':
+        advance();
+        count++;
+        break;
+      default:
+        return count;
     }
   }
 }
@@ -116,29 +116,29 @@ Token Lexer::lexer::scan_token() {
     return identifier(whitespace_count);
 
   switch (c) {
-  case '+':
-    return make_token(Kind::plus, whitespace_count);
-  case '-':
-    return make_token(Kind::minus, whitespace_count);
-  case '*':
-    return make_token(Kind::star, whitespace_count);
-  case '/':
-    return make_token(Kind::slash, whitespace_count);
-  case '%':
-    return make_token(Kind::mod, whitespace_count);
-  case '(':
-    return make_token(Kind::l_paren, whitespace_count);
-  case ')':
-    return make_token(Kind::r_paren, whitespace_count);
-  case ';':
-    return make_token(Kind::semicolon, whitespace_count);
-  case ':':
-    return make_token(Kind::colon, whitespace_count);
-  case '=': // NOTE: Also handle '=='
-    return make_token(Kind::equals, whitespace_count);
+    case '+':
+      return make_token(Kind::plus, whitespace_count);
+    case '-':
+      return make_token(Kind::minus, whitespace_count);
+    case '*':
+      return make_token(Kind::star, whitespace_count);
+    case '/':
+      return make_token(Kind::slash, whitespace_count);
+    case '%':
+      return make_token(Kind::mod, whitespace_count);
+    case '(':
+      return make_token(Kind::l_paren, whitespace_count);
+    case ')':
+      return make_token(Kind::r_paren, whitespace_count);
+    case ';':
+      return make_token(Kind::semicolon, whitespace_count);
+    case ':':
+      return make_token(Kind::colon, whitespace_count);
+    case '=':  // NOTE: Also handle '=='
+      return make_token(Kind::equals, whitespace_count);
   }
 
   std::string msg = "Token not found '" + std::to_string(c) + "'";
-  Error::handle_lexer_error(*this, "Lexerical", "math.xi", msg);
+  Error::handle_lexer_error(*this, "Lexical", "math.xi", msg);
   return make_token(Kind::unknown, whitespace_count);
 }

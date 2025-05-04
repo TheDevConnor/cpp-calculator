@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   ArenaAllocator arena(1024);
   std::string input = read_file(argc, argv);
   if (input == "")
-    return -1; // Argument issue
+    return -1;  // Argument issue
 
   Lexer::lexer lx;
   lx.init_lexer(&lx, input.c_str());
@@ -50,20 +50,18 @@ int main(int argc, char *argv[]) {
   std::vector<Lexer::Token> tks;
   while (true) {
     Lexer::Token tk = lx.scan_token();
-    std::cout << tk.whitespace << std::endl;
     tks.push_back(tk);
     if (tk.kind == Lexer::Kind::eof)
       break;
   }
 
   if (Error::report_error())
-    return 1; // Lexical Error
+    return 1;  // Lexical Error
 
   Node::Stmt *program = Parser::parse(tks, arena);
-  program->debug();
 
   if (Error::report_error())
-    return 2; // Parser Error
+    return 2;  // Parser Error
 
   // TODO: Handle typechecking then codegenerateion
   return 0;

@@ -4,21 +4,22 @@
 #include <vector>
 
 #include "../ast/ast.hpp"
+#include "../error/error.hpp"
 #include "../lexer/lexer.hpp"
 #include "../memory/memory.hpp"
 
 namespace Parser {
 enum BindingPower {
   default_value = 0,
-  additive = 1,       // + -
-  multiplicative = 2, // * /
-  exponent = 3,       // ^
-  group = 4,          // ()
+  additive = 1,        // + -
+  multiplicative = 2,  // * /
+  exponent = 3,        // ^
+  group = 4,           // ()
 };
 
 struct PStruct;
 inline Lexer::lexer lx;
-}; // namespace Parser
+};  // namespace Parser
 
 struct Parser::PStruct {
   std::vector<Lexer::Token> tks;
@@ -33,8 +34,8 @@ struct Parser::PStruct {
   Lexer::Token expect(Lexer::Kind tk, std::string msg) {
     if (peek(0).kind == tk)
       return advance();
-    throw std::invalid_argument(msg);
-    return advance();
+    Error::handle_parser_error("Parser", "main.xi", msg, tks, current().line, current().pos);
+    return current();
   }
 };
 
@@ -65,4 +66,4 @@ BindingPower tget_bp(PStruct *psr, Lexer::Kind tk);
 // stmt functions
 Node::Stmt *expr_stmt(PStruct *psr);
 Node::Stmt *var_stmt(PStruct *psr);
-}; // namespace Parser
+};  // namespace Parser
