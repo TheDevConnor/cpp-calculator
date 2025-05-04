@@ -1,1 +1,1 @@
-own x: int = 55 + 40;
+own x: int = 55;

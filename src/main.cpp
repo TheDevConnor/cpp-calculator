@@ -50,16 +50,21 @@ int main(int argc, char *argv[]) {
   std::vector<Lexer::Token> tks;
   while (true) {
     Lexer::Token tk = lx.scan_token();
+    std::cout << tk.whitespace << std::endl;
     tks.push_back(tk);
     if (tk.kind == Lexer::Kind::eof)
       break;
   }
 
   if (Error::report_error())
-    return 1; // Lexical Error happened
+    return 1; // Lexical Error
 
   Node::Stmt *program = Parser::parse(tks, arena);
   program->debug();
 
+  if (Error::report_error())
+    return 2; // Parser Error
+
+  // TODO: Handle typechecking then codegenerateion
   return 0;
 }
