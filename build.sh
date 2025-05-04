@@ -35,9 +35,9 @@ run() {
   # "$executable" build zura_files/main.zu -save -debug -name main|| die
   echo "Running..." || die
   if [ "$DEBUG_TYPE" == "debug" ]; then
-    "$executable" || die
+    "$executable" build test/test.xi || die
   else
-    "$executable" || die
+    "$executable" build test/test.xi || die
   fi
 }
 
@@ -51,7 +51,7 @@ for cmd in "$@"; do
       fi
       ;;
     val)
-      valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt ./"$BUILD_TYPE"/calculator || die
+      valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt ./"$BUILD_TYPE"/calculator build test/test.xi || die
       ;;
     clean)
       clean

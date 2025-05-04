@@ -2,32 +2,8 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
 
-#include "../memory/memory.hpp"
 #include "ast.hpp"
-
-struct ProgramExpr : public Node::Expr {
-public:
-  Node::Expr **exprs;
-  std::size_t size;
-
-  ProgramExpr(const std::vector<Node::Expr *> &list,
-              Allocator::ArenaAllocator &arena)
-      : size(list.size()) {
-    exprs = static_cast<Node::Expr **>(arena.alloc(size * sizeof(Node::Expr *), alignof(Node::Expr *)));
-    std::copy(list.begin(), list.end(), exprs);
-    kind = NodeKind::program;
-  }
-
-  void debug(int indent = 0) const override {
-    (void)indent;
-    for (std::size_t i = 0; i < size; i++)
-      exprs[i]->debug();
-  }
-
-  double eval() const override;
-};
 
 struct Number : public Node::Expr {
 public:
@@ -39,8 +15,17 @@ public:
     (void)indent;
     std::cout << "Number Node: " << value << std::endl;
   }
+};
 
-  double eval() const override;
+struct Ident : public Node::Expr {
+  std::string ident;
+
+  Ident(std::string ident) : ident(ident) { kind = NodeKind::ident; }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "Ident Node: " << ident << std::endl;
+  }
 };
 
 struct Binary : public Node::Expr {
@@ -70,8 +55,6 @@ public:
     }
     std::cout << std::endl;
   }
-
-  double eval() const override;
 };
 
 struct Unary : public Node::Expr {
@@ -91,8 +74,6 @@ public:
     right->debug();
     std::cout << std::endl;
   }
-
-  double eval() const override;
 };
 
 struct Group : public Node::Expr {
@@ -107,6 +88,4 @@ public:
     expr->debug();
     std::cout << std::endl;
   }
-
-  double eval() const override;
 };

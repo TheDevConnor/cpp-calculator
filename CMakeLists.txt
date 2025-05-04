@@ -10,6 +10,7 @@ add_compile_options(-Wall -Wpedantic -Wextra -Wundef -Wwrite-strings -Wredundant
 # Specify header and source files
 set(CALCULATOR_HEADER_FILES
     src/memory/memory.hpp
+    src/error/error.hpp
     src/lexer/lexer.hpp
     src/parser/parser.hpp
 )
@@ -17,11 +18,12 @@ set(CALCULATOR_HEADER_FILES
 set(CALCULATOR_SOURCE_FILES
     src/main.cpp
 
+    src/error/error.cpp
+
     src/lexer/lexer.cpp
     src/parser/parser.cpp
     src/parser/expr.cpp
-
-    src/eval/eval.cpp
+    src/parser/stmt.cpp
 )
 
 # Create executable

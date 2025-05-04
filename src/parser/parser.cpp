@@ -1,20 +1,21 @@
 #include "parser.hpp"
 
 #include "../ast/ast.hpp"
-#include "../ast/expr.hpp"
+#include "../ast/stmt.hpp"
+#include "../ast/type.hpp"
 #include "../memory/memory.hpp"
 
-Node::Expr *Parser::parse(std::vector<Lexer::Token> tks,
+Node::Stmt *Parser::parse(std::vector<Lexer::Token> tks,
                           Allocator::ArenaAllocator &arena) {
   PStruct p = PStruct{tks, {}, arena, 0};
 
   while (p.had_tokens()) {
-    p.pr.push_back(parse_expr(&p, BindingPower::default_value));
+    p.pr.push_back(parse_stmt(&p));
     if (p.current().kind == Lexer::Kind::eof)
       break;
   }
 
-  return p.arena.emplace<ProgramExpr>(p.pr, p.arena);
+  return p.arena.emplace<ProgramStmt>(p.pr, p.arena);
 }
 
 Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
@@ -36,6 +37,7 @@ Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
 Node::Expr *Parser::nud(PStruct *psr) {
   switch (psr->current().kind) {
   case Lexer::Kind::number:
+  case Lexer::Kind::ident:
     return primary(psr);
   case Lexer::Kind::minus:
     return unary(psr);
@@ -58,5 +60,21 @@ Node::Expr *Parser::led(PStruct *psr, Node::Expr *left, BindingPower bp) {
   default:
     psr->advance();
     return left;
+  }
+}
+
+// TODO: Flesh this out later
+Node::Type *Parser::parse_type(PStruct *psr) {
+  switch (psr->current().kind) {
+  case Lexer::Kind::_uint:
+  case Lexer::Kind::_int:
+  case Lexer::Kind::_float:
+  case Lexer::Kind::_bool:
+  case Lexer::Kind::_char:
+  case Lexer::Kind::_str:
+    return psr->arena.emplace<SymbolType>(psr->advance().value);
+  default:
+    psr->advance();
+    return nullptr;
   }
 }
