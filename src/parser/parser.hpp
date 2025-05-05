@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdexcept>
 #include <vector>
 
 #include "../ast/ast.hpp"
@@ -28,9 +27,13 @@ struct Parser::PStruct {
   size_t pos;
 
   bool had_tokens() { return pos < tks.size(); }
-  Lexer::Token peek(size_t offset = 0) { return tks[pos + offset]; }
-  Lexer::Token current() { return tks[pos]; }
-  Lexer::Token advance() { return tks[pos++]; }
+  Lexer::Token peek(size_t offset = 0) {
+    if (pos + offset >= tks.size())
+      return tks.back();
+    return tks[pos + offset];
+  }
+  Lexer::Token current() { return (pos >= tks.size()) ? tks.back() : tks[pos]; }
+  Lexer::Token advance() { return (pos >= tks.size()) ? tks.back() : tks[pos++]; }
   Lexer::Token expect(Lexer::Kind tk, std::string msg) {
     if (peek(0).kind == tk)
       return advance();

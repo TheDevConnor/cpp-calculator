@@ -39,7 +39,7 @@ struct Token {
 };
 
 class lexer {
-public:
+ public:
   void init_lexer(lexer *lx, const char *source);
   const char *line_start(int line);
   Token scan_token();
@@ -47,14 +47,19 @@ public:
   int line = 1;
   int pos = 0;
 
-private:
+ private:
   const char *current;
   const char *start;
   const char *source;
 
   std::unordered_map<std::string, Kind> keywords = {
-      {"uint", _uint}, {"int", _int}, {"float", _float}, {"char", _char},
-      {"bool", _bool}, {"str", _str}, {"own", var},
+      {"uint", _uint},
+      {"int", _int},
+      {"float", _float},
+      {"char", _char},
+      {"bool", _bool},
+      {"str", _str},
+      {"have", var},
   };
 
   char advance();
@@ -68,4 +73,4 @@ private:
   Kind check_map(std::string ident);
   int skip_whitespace();
 };
-}; // namespace Lexer
+};  // namespace Lexer
