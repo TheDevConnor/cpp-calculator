@@ -1,5 +1,7 @@
 #include "../ast/stmt.hpp"
 
+#include <vector>
+
 #include "parser.hpp"
 
 Node::Stmt *Parser::parse_stmt(PStruct *psr) {
@@ -10,6 +12,8 @@ Node::Stmt *Parser::parse_stmt(PStruct *psr) {
       return const_stmt(psr);
     case Lexer::Kind::_return:
       return return_stmt(psr);
+    case Lexer::Kind::l_brace:
+      return block_stmt(psr);
     default:
       return expr_stmt(psr);
   }
@@ -59,10 +63,10 @@ Node::Stmt *Parser::fn_stmt(PStruct *psr, std::string name) {
   if (type == nullptr)
     Error::handle_error("Parser", "main.xi", "Expected a return type for the function", psr->tks, psr->current().line, psr->current().pos);
 
-  // Node::Stmt *block = parse_stmt(psr);
+  Node::Stmt *block = parse_stmt(psr);
   psr->expect(Lexer::Kind::semicolon, "Expected a ';' at the end of a function declaration");
 
-  return psr->arena.emplace<FnStmt>(name, type, params, psr->arena);
+  return psr->arena.emplace<FnStmt>(name, type, params, block, psr->arena);
 }
 
 Node::Stmt *Parser::var_stmt(PStruct *psr) {
@@ -81,6 +85,20 @@ Node::Stmt *Parser::var_stmt(PStruct *psr) {
 
   return psr->arena.emplace<VarStmt>(name, type, expr);
 }
+
+Node::Stmt *Parser::block_stmt(PStruct *psr) {
+  std::vector<Node::Stmt *> block;
+  psr->expect(Lexer::Kind::l_brace, "Expected a '{' to start a block");
+
+  while (psr->current().kind != Lexer::Kind::r_brace) {
+    block.push_back(parse_stmt(psr));
+    if (psr->current().kind == Lexer::Kind::_return)
+      break;  // No need to continue after this we are at the end of the block
+  }
+  psr->expect(Lexer::Kind::r_brace, "Expected a '}' to end a block");
+
+  return psr->arena.emplace<BlockStmt>(block, psr->arena);
+};
 
 Node::Stmt *Parser::return_stmt(PStruct *psr) {
   psr->expect(Lexer::Kind::_return, "Expected a RETURN keyword to start a return stmt");

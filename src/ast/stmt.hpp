@@ -33,13 +33,14 @@ struct FnStmt : public Node::Stmt {
  public:
   std::string name;
   Node::Type *return_type;
+  Node::Stmt *block;
   // Param vector
   const char **args;
   Node::Type **args_type;
   std::size_t size;
 
-  FnStmt(std::string name, Node::Type *return_type, const std::vector<std::pair<std::string, Node::Type *>> &params, Allocator::ArenaAllocator &arena)
-      : name(name), return_type(return_type), size(params.size()) {
+  FnStmt(std::string name, Node::Type *return_type, const std::vector<std::pair<std::string, Node::Type *>> &params, Node::Stmt *block, Allocator::ArenaAllocator &arena)
+      : name(name), return_type(return_type), block(block), size(params.size()) {
     args = static_cast<const char **>(arena.alloc(size * sizeof(const char *), alignof(const char *)));
     args_type = static_cast<Node::Type **>(arena.alloc(size * sizeof(Node::Type *), alignof(Node::Type *)));
 
@@ -74,6 +75,8 @@ struct FnStmt : public Node::Stmt {
         std::cout << "}\n";
       }
     }
+    std::cout << "    body: \n";
+    block->debug(2);
     std::cout << std::endl;
   }
 };

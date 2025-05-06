@@ -18,6 +18,10 @@ enum Kind {
   colon,
   equals,
   comma,
+  l_bracket,  // [
+  r_bracket,  // ]
+  l_brace,    // {
+  r_brace,    // }
 
   walrus,
 

@@ -134,6 +134,14 @@ Token Lexer::lexer::scan_token() {
       return make_token(Kind::semicolon, whitespace_count);
     case ',':
       return make_token(Kind::comma, whitespace_count);
+    case '{':
+      return make_token(Kind::l_brace, whitespace_count);
+    case '}':
+      return make_token(Kind::r_brace, whitespace_count);
+    case '[':
+      return make_token(Kind::l_bracket, whitespace_count);
+    case ']':
+      return make_token(Kind::r_bracket, whitespace_count);
     case ':':
       if (peek(0) == '=') {
         advance();
