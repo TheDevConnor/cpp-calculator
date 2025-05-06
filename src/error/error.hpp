@@ -20,8 +20,8 @@ class Error {
   inline static std::vector<std::string> errors = {};
   static void handle_lexer_error(Lexer::lexer &lex, std::string error_type,
                                  std::string file_path, std::string msg);
-  static void handle_parser_error(std::string error_type, std::string file_path,
-                                  std::string msg, const std::vector<Lexer::Token> &tks, int line, int pos);
+  static void handle_error(std::string error_type, std::string file_path,
+                           std::string msg, const std::vector<Lexer::Token> &tks, int line, int pos);
   static bool report_error();
 
  private:

@@ -13,6 +13,6 @@ class SymbolType : public Node::Type {
 
   void debug(int indent = 0) const override {
     (void)indent;
-    std::cout << "TYPE: " << name << std::endl;
+    std::cout << "TYPE: " << name;
   }
 };

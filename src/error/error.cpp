@@ -85,9 +85,9 @@ void Error::handle_lexer_error(Lexer::lexer &lex, std::string error_type,
   }
 }
 
-void Error::handle_parser_error(std::string error_type, std::string file_path,
-                                std::string msg, const std::vector<Lexer::Token> &tks,
-                                int line, int pos) {
+void Error::handle_error(std::string error_type, std::string file_path,
+                         std::string msg, const std::vector<Lexer::Token> &tks,
+                         int line, int pos) {
   if (msg.find("Expected ';'") == 0) line = line - 1;
   try {
     std::string error = error_head(error_type, line, pos, file_path);

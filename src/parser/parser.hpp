@@ -37,7 +37,7 @@ struct Parser::PStruct {
   Lexer::Token expect(Lexer::Kind tk, std::string msg) {
     if (peek(0).kind == tk)
       return advance();
-    Error::handle_parser_error("Parser", "main.xi", msg, tks, current().line, current().pos);
+    Error::handle_error("Parser", "main.xi", msg, tks, current().line, current().pos);
     return current();
   }
 };
@@ -69,4 +69,8 @@ BindingPower tget_bp(PStruct *psr, Lexer::Kind tk);
 // stmt functions
 Node::Stmt *expr_stmt(PStruct *psr);
 Node::Stmt *var_stmt(PStruct *psr);
+Node::Stmt *const_stmt(PStruct *psr);
+Node::Stmt *fn_stmt(PStruct *psr, std::string name);
+Node::Stmt *block_stmt(PStruct *psr);
+Node::Stmt *return_stmt(PStruct *psr);
 };  // namespace Parser

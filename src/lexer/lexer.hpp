@@ -17,6 +17,9 @@ enum Kind {
   semicolon,
   colon,
   equals,
+  comma,
+
+  walrus,
 
   // Keywords
   _uint,
@@ -26,6 +29,9 @@ enum Kind {
   _bool,
   _str,
   var,
+  _const,
+  _return,
+  fn,
 
   eof,
   unknown,
@@ -60,6 +66,9 @@ class lexer {
       {"bool", _bool},
       {"str", _str},
       {"have", var},
+      {"const", _const},
+      {"fn", fn},
+      {"return", _return},
   };
 
   char advance();

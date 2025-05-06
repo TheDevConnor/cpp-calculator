@@ -10,10 +10,13 @@ enum NodeKind {
   group,
   expr_stmt,
   var_stmt,
+  return_stmt,
+  fn_stmt,
+  block_stmt,
 };
 
 class Node {
-public:
+ public:
   struct Expr {
     NodeKind kind;
     virtual void debug(int indent = 0) const = 0;

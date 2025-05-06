@@ -132,7 +132,13 @@ Token Lexer::lexer::scan_token() {
       return make_token(Kind::r_paren, whitespace_count);
     case ';':
       return make_token(Kind::semicolon, whitespace_count);
+    case ',':
+      return make_token(Kind::comma, whitespace_count);
     case ':':
+      if (peek(0) == '=') {
+        advance();
+        return make_token(Kind::walrus, whitespace_count);
+      }
       return make_token(Kind::colon, whitespace_count);
     case '=':  // NOTE: Also handle '=='
       return make_token(Kind::equals, whitespace_count);
