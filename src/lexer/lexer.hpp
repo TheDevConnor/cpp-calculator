@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -18,10 +19,14 @@ enum Kind {
   colon,
   equals,
   comma,
-  l_bracket,  // [
-  r_bracket,  // ]
-  l_brace,    // {
-  r_brace,    // }
+  equal_equal,
+  less_equal,
+  not_equal,
+  greater_equal,
+  l_bracket, // [
+  r_bracket, // ]
+  l_brace,   // {
+  r_brace,   // }
 
   walrus,
 
@@ -49,7 +54,7 @@ struct Token {
 };
 
 class lexer {
- public:
+public:
   void init_lexer(lexer *lx, const char *source);
   const char *line_start(int line);
   Token scan_token();
@@ -57,22 +62,30 @@ class lexer {
   int line = 1;
   int pos = 0;
 
- private:
+private:
   const char *current;
   const char *start;
   const char *source;
 
   std::unordered_map<std::string, Kind> keywords = {
-      {"uint", _uint},
-      {"int", _int},
-      {"float", _float},
-      {"char", _char},
-      {"bool", _bool},
-      {"str", _str},
-      {"have", var},
-      {"const", _const},
-      {"fn", fn},
+      {"uint", _uint},     {"int", _int},     {"float", _float},
+      {"char", _char},     {"bool", _bool},   {"str", _str},
+      {"have", var},       {"const", _const}, {"fn", fn},
       {"return", _return},
+  };
+
+  static constexpr std::pair<char, Kind> token_map[] = {
+      {'+', Kind::plus},      {'-', Kind::minus},     {'*', Kind::star},
+      {'/', Kind::slash},     {'%', Kind::mod},       {'(', Kind::l_paren},
+      {')', Kind::r_paren},   {';', Kind::semicolon}, {',', Kind::comma},
+      {'{', Kind::l_brace},   {'}', Kind::r_brace},   {'[', Kind::l_bracket},
+      {']', Kind::r_bracket}, {':', Kind::colon},     {'=', Kind::equals},
+  };
+
+  static constexpr std::pair<std::string_view, Kind> double_token_map[] = {
+      {"==", Kind::equal_equal}, {"!=", Kind::not_equal},
+      {"<=", Kind::less_equal},  {">=", Kind::greater_equal},
+      {":=", Kind::walrus},
   };
 
   char advance();
@@ -85,5 +98,21 @@ class lexer {
 
   Kind check_map(std::string ident);
   int skip_whitespace();
+
+  constexpr std::optional<Kind> lookup_kind(char c) {
+    for (auto [key, value] : token_map) {
+      if (key == c)
+        return value;
+    }
+    return std::nullopt;
+  }
+
+  constexpr std::optional<Kind> lookup_kind(char a, char b) {
+    for (auto [key, value] : double_token_map) {
+      if (key[0] == a && key[1] == b)
+        return value;
+    }
+    return std::nullopt;
+  }
 };
-};  // namespace Lexer
+}; // namespace Lexer

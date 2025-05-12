@@ -108,8 +108,6 @@ Node::Stmt *Parser::block_stmt(PStruct *psr) {
 
   while (psr->current().kind != Lexer::Kind::r_brace) {
     block.push_back(parse_stmt(psr));
-    if (psr->current().kind == Lexer::Kind::_return)
-      break; // No need to continue after this we are at the end of the block
   }
   psr->expect(Lexer::Kind::r_brace, "Expected a '}' to end a block");
 

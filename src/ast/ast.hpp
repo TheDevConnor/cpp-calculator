@@ -12,6 +12,7 @@ enum NodeKind {
   binary,
   unary,
   group,
+  _call,
   expr_stmt,
   var_stmt,
   return_stmt,

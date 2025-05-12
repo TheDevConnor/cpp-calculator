@@ -79,17 +79,17 @@ int Lexer::lexer::skip_whitespace() {
   for (;;) {
     char c = peek(0);
     switch (c) {
-      case '\n':
-        advance();
-        break;
-      case ' ':
-      case '\r':
-      case '\t':
-        advance();
-        count++;
-        break;
-      default:
-        return count;
+    case '\n':
+      advance();
+      break;
+    case ' ':
+    case '\r':
+    case '\t':
+      advance();
+      count++;
+      break;
+    default:
+      return count;
     }
   }
 }
@@ -115,41 +115,13 @@ Token Lexer::lexer::scan_token() {
   if (isalpha(c))
     return identifier(whitespace_count);
 
-  switch (c) {
-    case '+':
-      return make_token(Kind::plus, whitespace_count);
-    case '-':
-      return make_token(Kind::minus, whitespace_count);
-    case '*':
-      return make_token(Kind::star, whitespace_count);
-    case '/':
-      return make_token(Kind::slash, whitespace_count);
-    case '%':
-      return make_token(Kind::mod, whitespace_count);
-    case '(':
-      return make_token(Kind::l_paren, whitespace_count);
-    case ')':
-      return make_token(Kind::r_paren, whitespace_count);
-    case ';':
-      return make_token(Kind::semicolon, whitespace_count);
-    case ',':
-      return make_token(Kind::comma, whitespace_count);
-    case '{':
-      return make_token(Kind::l_brace, whitespace_count);
-    case '}':
-      return make_token(Kind::r_brace, whitespace_count);
-    case '[':
-      return make_token(Kind::l_bracket, whitespace_count);
-    case ']':
-      return make_token(Kind::r_bracket, whitespace_count);
-    case ':':
-      if (peek(0) == '=') {
-        advance();
-        return make_token(Kind::walrus, whitespace_count);
-      }
-      return make_token(Kind::colon, whitespace_count);
-    case '=':  // NOTE: Also handle '=='
-      return make_token(Kind::equals, whitespace_count);
+  char next = peek(0);
+  if (auto kind2 = lookup_kind(c, next)) {
+    advance();
+    return make_token(*kind2, whitespace_count);
+  }
+  if (auto kind = lookup_kind(c)) {
+    return make_token(*kind, whitespace_count);
   }
 
   std::string msg = "Token not found '" + std::to_string(c) + "'";

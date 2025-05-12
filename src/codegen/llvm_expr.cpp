@@ -1,3 +1,5 @@
+#include <llvm/IR/Module.h>
+
 #include "../ast/expr.hpp"
 
 llvm::Value *
@@ -28,23 +30,56 @@ Binary::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
   if (!l || !r)
     return nullptr;
 
-  std::map<std::string, std::string> op_map = {
-      {"+", "addtmp"}, {"-", "subtmp"}, {"*", "multmp"}, {"/", "divtmp"},
-      {"%", "modtmp"}, {"==", "eqtmp"}, {"!=", "netmp"}, {"<", "lttmp"},
-      {">", "gttmp"},  {"<=", "letmp"}, {">=", "getmp"}};
-
-  auto it = op_map.find(op);
-  if (it != op_map.end()) {
-    if (op == "+" || op == "-" || op == "*" || op == "/" || op == "%") {
-      return builder.CreateBinOp(llvm::Instruction::BinaryOps::Add, l, r,
-                                 it->second.c_str());
-    } else if (op == "==" || op == "!=" || op == "<" || op == ">" ||
-               op == "<=" || op == ">=") {
-      return builder.CreateICmpEQ(l, r, it->second.c_str());
-    }
+  if (op == "+")
+    return builder.CreateAdd(l, r, "addtmp");
+  else if (op == "-")
+    return builder.CreateSub(l, r, "subtmp");
+  else if (op == "*")
+    return builder.CreateMul(l, r, "multmp");
+  else if (op == "/")
+    return builder.CreateSDiv(l, r, "divtmp");
+  else {
+    std::cerr << "Unknown binary operator: " << op << std::endl;
+    return nullptr;
   }
-  std::cerr << "Unknown binary operator: " << op << std::endl;
-  return nullptr;
+}
+
+llvm::Value *
+Call::codegen(llvm::LLVMContext &context, llvm::IRBuilder<> &builder,
+              std::map<std::string, llvm::Value *> &named_values) const {
+  // 1. Resolve the function name
+  auto *name_expr = dynamic_cast<Ident *>(name);
+  if (!name_expr) {
+    std::cerr << "Call target is not a function name\n";
+    return nullptr;
+  }
+
+  const std::string &func_name = name_expr->ident;
+  llvm::Function *callee_func =
+      builder.GetInsertBlock()->getModule()->getFunction(func_name);
+  if (!callee_func) {
+    std::cerr << "Unknown function referenced: " << func_name << "\n";
+    return nullptr;
+  }
+
+  // 2. Check argument count
+  if (callee_func->arg_size() != args.size()) {
+    std::cerr << "Incorrect number of arguments passed to function "
+              << func_name << "\n";
+    return nullptr;
+  }
+
+  // 3. Generate code for each argument
+  std::vector<llvm::Value *> arg_values;
+  for (auto *arg_expr : args) {
+    llvm::Value *arg_val = arg_expr->codegen(context, builder, named_values);
+    if (!arg_val)
+      return nullptr;
+    arg_values.push_back(arg_val);
+  }
+
+  // 4. Emit call instruction
+  return builder.CreateCall(callee_func, arg_values, "calltmp");
 }
 
 llvm::Value *
