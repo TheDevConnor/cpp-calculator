@@ -28,18 +28,23 @@ Binary::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
   if (!l || !r)
     return nullptr;
 
-  if (op == "+")
-    return builder.CreateAdd(l, r, "addtmp");
-  else if (op == "-")
-    return builder.CreateSub(l, r, "subtmp");
-  else if (op == "*")
-    return builder.CreateMul(l, r, "multmp");
-  else if (op == "/")
-    return builder.CreateSDiv(l, r, "divtmp");
-  else {
-    std::cerr << "Unknown binary operator: " << op << std::endl;
-    return nullptr;
+  std::map<std::string, std::string> op_map = {
+      {"+", "addtmp"}, {"-", "subtmp"}, {"*", "multmp"}, {"/", "divtmp"},
+      {"%", "modtmp"}, {"==", "eqtmp"}, {"!=", "netmp"}, {"<", "lttmp"},
+      {">", "gttmp"},  {"<=", "letmp"}, {">=", "getmp"}};
+
+  auto it = op_map.find(op);
+  if (it != op_map.end()) {
+    if (op == "+" || op == "-" || op == "*" || op == "/" || op == "%") {
+      return builder.CreateBinOp(llvm::Instruction::BinaryOps::Add, l, r,
+                                 it->second.c_str());
+    } else if (op == "==" || op == "!=" || op == "<" || op == ">" ||
+               op == "<=" || op == ">=") {
+      return builder.CreateICmpEQ(l, r, it->second.c_str());
+    }
   }
+  std::cerr << "Unknown binary operator: " << op << std::endl;
+  return nullptr;
 }
 
 llvm::Value *
