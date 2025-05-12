@@ -26,7 +26,7 @@ clean() {
 }
 
 run() {
-  executable="./$BUILD_TYPE/calculator"
+  executable="./$BUILD_TYPE/zura2"
   echo "Executable: $executable" || die
   if [ ! -f "$executable" ]; then
     echo "Executable not found in $BUILD_TYPE build." || die
@@ -35,9 +35,9 @@ run() {
   # "$executable" build zura_files/main.zu -save -debug -name main|| die
   echo "Running..." || die
   if [ "$DEBUG_TYPE" == "debug" ]; then
-    "$executable" build test/test.xi || die
+    "$executable" build test/test.zu || die
   else
-    "$executable" build test/test.xi || die
+    "$executable" build test/test.zu || die
   fi
 }
 
@@ -51,7 +51,7 @@ for cmd in "$@"; do
       fi
       ;;
     val)
-      valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt ./"$BUILD_TYPE"/calculator build test/test.xi || die
+      valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --log-file=valgrind-out.txt ./"$BUILD_TYPE"/zura2 build test/test.zu || die
       ;;
     clean)
       clean

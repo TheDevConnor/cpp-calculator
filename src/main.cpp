@@ -1,6 +1,10 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
+#include <llvm/Support/raw_ostream.h>
 #include <sstream>
 #include <vector>
 
@@ -39,10 +43,14 @@ std::string read_file(int argc, char *argv[]) {
 
 // NOTE: Maybe store the filename on the Token Struct
 int main(int argc, char *argv[]) {
+  llvm::LLVMContext context;
+  llvm::IRBuilder<> builder(context);
+  llvm::Module module("main", context);
   ArenaAllocator arena(1024);
+
   std::string input = read_file(argc, argv);
   if (input == "")
-    return -1;  // Argument issue
+    return -1; // Argument issue
 
   Lexer::lexer lx;
   lx.init_lexer(&lx, input.c_str());
@@ -56,14 +64,53 @@ int main(int argc, char *argv[]) {
   }
 
   if (Error::report_error())
-    return 1;  // Lexical Error
+    return 1; // Lexical Error
 
   Node::Stmt *program = Parser::parse(tks, arena);
-  program->debug();
 
   if (Error::report_error())
-    return 2;  // Parser Error
+    return 2; // Parser Error
 
-  // TODO: Handle typechecking then codegenerateion
+  // NOTE: Handle type checking here
+
+  // Code generation
+  std::map<std::string, llvm::Value *> named_values;
+  llvm::Value *result = program->codegen(context, builder, module, named_values);
+  if (result == nullptr) {
+    std::cerr << "Error generating code\n";
+    return 3; // Code generation error
+  }
+
+  std::error_code EC;
+  llvm::raw_fd_ostream outFile("out.ll", EC);
+  if (EC) {
+    std::cerr << "Could not open out.ll: " << EC.message() << "\n";
+    return 4;
+  }
+  module.print(outFile, nullptr);
+
+  // Now we want to compile and link the IR file programmatically
+  // Step 1: Use llc to compile IR to an object file
+  if (system("llc -filetype=obj out.ll -o out.o") != 0) {
+    std::cerr << "Error running llc to generate object file!" << std::endl;
+    return -1;
+  }
+
+  // Step 2: Link the object file to an executable using clang
+  if (system("clang out.o -o my_program") != 0) {
+    std::cerr << "Error linking with clang!" << std::endl;
+    return -1;
+  }
+
+  // Step 3: Execute the generated program
+  std::cout << "Executable 'my_program' has been generated!" << std::endl;
+
+  // delete the out.ll and out.o files
+  // NOTE: Add in a save option if the user wants to keep the files
+  // if (system("rm out.ll out.o") != 0) {
+  //   std::cerr << "Error deleting temporary files!" << std::endl;
+  //   return -1;
+  // }
+
   return 0;
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Value.h>
 #include <string>
 
 #include "ast.hpp"
@@ -15,6 +17,9 @@ public:
     (void)indent;
     std::cout << "Number Node: " << value << std::endl;
   }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
 };
 
 struct Ident : public Node::Expr {
@@ -26,6 +31,9 @@ struct Ident : public Node::Expr {
     (void)indent;
     std::cout << "Ident Node: " << ident << std::endl;
   }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
 };
 
 struct Binary : public Node::Expr {
@@ -55,6 +63,9 @@ public:
     }
     std::cout << std::endl;
   }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
 };
 
 struct Unary : public Node::Expr {
@@ -74,6 +85,9 @@ public:
     right->debug();
     std::cout << std::endl;
   }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
 };
 
 struct Group : public Node::Expr {
@@ -88,4 +102,7 @@ public:
     expr->debug();
     std::cout << std::endl;
   }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
 };

@@ -27,6 +27,9 @@ struct ProgramStmt : public Node::Stmt {
     for (std::size_t i = 0; i < size; i++)
       stmts[i]->debug();
   }
+
+  llvm::Value* codegen(llvm::LLVMContext&, llvm::IRBuilder<>&,
+    llvm::Module&, std::map<std::string, llvm::Value*>&) const override;
 };
 
 struct FnStmt : public Node::Stmt {
@@ -79,6 +82,9 @@ struct FnStmt : public Node::Stmt {
     block->debug(2);
     std::cout << std::endl;
   }
+
+  llvm::Value* codegen(llvm::LLVMContext&, llvm::IRBuilder<>&,
+    llvm::Module&, std::map<std::string, llvm::Value*>&) const override;
 };
 
 struct BlockStmt : public Node::Stmt {
@@ -100,6 +106,9 @@ struct BlockStmt : public Node::Stmt {
         stmt[i]->debug(1);
     }
   }
+
+  llvm::Value* codegen(llvm::LLVMContext&, llvm::IRBuilder<>&,
+    llvm::Module&, std::map<std::string, llvm::Value*>&) const override;
 };
 
 struct ExprStmt : public Node::Stmt {
@@ -113,6 +122,9 @@ struct ExprStmt : public Node::Stmt {
     std::cout << "EXPR_STMT: \n";
     expr->debug(1);
   }
+
+  llvm::Value* codegen(llvm::LLVMContext&, llvm::IRBuilder<>&,
+    llvm::Module&, std::map<std::string, llvm::Value*>&) const override;
 };
 
 struct VarStmt : public Node::Stmt {
@@ -135,6 +147,9 @@ struct VarStmt : public Node::Stmt {
     std::cout << "\n    expr: ";
     expr->debug();
   }
+
+  llvm::Value* codegen(llvm::LLVMContext&, llvm::IRBuilder<>&,
+    llvm::Module&, std::map<std::string, llvm::Value*>&) const override;
 };
 
 struct ReturnStmt : public Node::Stmt {
@@ -153,4 +168,7 @@ struct ReturnStmt : public Node::Stmt {
     else
       std::cout << "nullptr\n";
   }
+
+  llvm::Value* codegen(llvm::LLVMContext&, llvm::IRBuilder<>&,
+    llvm::Module&, std::map<std::string, llvm::Value*>&) const override;
 };

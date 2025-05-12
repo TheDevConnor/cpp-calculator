@@ -1,4 +1,8 @@
 release
 debug
+*.o
+*.exe
+*.out
+*.ll
 
 valgrind-out.txt
