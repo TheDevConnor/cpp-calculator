@@ -106,3 +106,29 @@ public:
   llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
                        std::map<std::string, llvm::Value *> &) const override;
 };
+
+struct Call : public Node::Expr {
+public:
+  Node::Expr *name;
+  std::vector<Node::Expr *> args;
+
+  Call(Node::Expr *name, std::vector<Node::Expr *> args)
+      : name(name), args(args) {
+    kind = NodeKind::call;
+  }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "Call: ";
+    name->debug();
+    std::cout << std::endl;
+    
+    for (std::size_t i = 0; i < args.size(); ++i) {
+      std::cout << "   arg: ";
+      args[i]->debug();
+    }
+  }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};
