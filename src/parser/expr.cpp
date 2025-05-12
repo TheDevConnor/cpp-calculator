@@ -33,13 +33,6 @@ Node::Expr *Parser::unary(PStruct *psr) {
   return psr->arena.emplace<Unary>(right, op.value);
 }
 
-Node::Expr *Parser::grouping(PStruct *psr) {
-  psr->advance(); // consume the (
-  Node::Expr *expr = parse_expr(psr, BindingPower::default_value);
-  psr->advance();
-  return psr->arena.emplace<Group>(expr);
-}
-
 Node::Expr *Parser::binary(PStruct *psr, Node::Expr *left, BindingPower bp) {
   Lexer::Token op = psr->advance();
   Node::Expr *right = parse_expr(psr, bp);
@@ -47,14 +40,9 @@ Node::Expr *Parser::binary(PStruct *psr, Node::Expr *left, BindingPower bp) {
   return psr->arena.emplace<Binary>(left, right, op.value);
 }
 
-Node::Expr *Parser::_call(PStruct *psr, Node::Expr *left, BindingPower bp) {
+Node::Expr *Parser::grouping(PStruct *psr) {
   psr->advance(); // consume the (
-  std::vector<Node::Expr *> args;
-  while (psr->current().kind != Lexer::Kind::r_paren) {
-    args.push_back(parse_expr(psr, BindingPower::default_value));
-    if (psr->current().kind == Lexer::Kind::comma)
-      psr->advance();
-  }
-  psr->advance(); // consume the )
-  return psr->arena.emplace<Call>(left, args);
+  Node::Expr *expr = parse_expr(psr, BindingPower::default_value);
+  psr->advance();
+  return psr->arena.emplace<Group>(expr);
 }

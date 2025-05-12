@@ -10,23 +10,10 @@
 namespace Parser {
 enum BindingPower {
   default_value = 0,
-  comma = 1,
-  assignment = 2,
-  ternary = 3,
-  logicalOr = 4,
-  logicalAnd = 5,
-  relational = 6,
-  comparison = 7,
-  additive = 8,
-  multiplicative = 9,
-  range = 9,
-  power = 10,
-  prefix = 11,
-  postfix = 12,
-  call = 13,
-  member = 13,
-  _primary = 14,
-  err = 15
+  additive = 1,        // + -
+  multiplicative = 2,  // * /
+  exponent = 3,        // ^
+  group = 4,           // ()
 };
 
 struct PStruct;
@@ -73,7 +60,6 @@ Node::Expr *grouping(PStruct *psr);
 
 // led functions
 Node::Expr *binary(PStruct *psr, Node::Expr *left, BindingPower bp);
-Node::Expr *_call(PStruct *psr, Node::Expr *left, BindingPower bp);
 
 // type functions
 Node::Type *tnud(PStruct *psr);

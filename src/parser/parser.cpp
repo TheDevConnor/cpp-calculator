@@ -28,7 +28,7 @@ Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
     case Lexer::Kind::mod:
       return BindingPower::multiplicative;
     case Lexer::Kind::l_paren:
-      return BindingPower::call;
+      return BindingPower::group;
     default:
       return BindingPower::default_value;
   }
@@ -57,8 +57,6 @@ Node::Expr *Parser::led(PStruct *psr, Node::Expr *left, BindingPower bp) {
     case Lexer::Kind::slash:
     case Lexer::Kind::mod:
       return binary(psr, left, bp);
-    case Lexer::Kind::l_paren:
-      return _call(psr, left, bp);
     default:
       psr->advance();
       return left;

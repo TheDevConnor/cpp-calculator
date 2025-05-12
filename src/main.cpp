@@ -67,7 +67,6 @@ int main(int argc, char *argv[]) {
     return 1; // Lexical Error
 
   Node::Stmt *program = Parser::parse(tks, arena);
-  program->debug();
 
   if (Error::report_error())
     return 2; // Parser Error
