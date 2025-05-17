@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
     return 1; // Lexical Error
 
   Node::Stmt *program = Parser::parse(tks, arena);
+  program->debug();
 
   if (Error::report_error())
     return 2; // Parser Error
@@ -91,13 +92,13 @@ int main(int argc, char *argv[]) {
 
   // Now we want to compile and link the IR file programmatically
   // Step 1: Use llc to compile IR to an object file
-  if (system("llc -filetype=obj out.ll -o out.o") != 0) {
+  if (system("llc -filetype=obj -relocation-model=pic out.ll -o out.o") != 0) {
     std::cerr << "Error running llc to generate object file!" << std::endl;
     return -1;
   }
 
   // Step 2: Link the object file to an executable using clang
-  if (system("clang out.o -o my_program") != 0) {
+  if (system("clang out.o -o my_program -fPIE") != 0) {
     std::cerr << "Error linking with clang!" << std::endl;
     return -1;
   }

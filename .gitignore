@@ -1,8 +1,11 @@
 release
 debug
+.cache
+build
 *.o
 *.exe
 *.out
 *.ll
 
+my_program
 valgrind-out.txt

@@ -38,6 +38,7 @@ Node::Expr *Parser::nud(PStruct *psr) {
   switch (psr->current().kind) {
   case Lexer::Kind::number:
   case Lexer::Kind::ident:
+  case Lexer::Kind::string:
     return primary(psr);
   case Lexer::Kind::minus:
     return unary(psr);

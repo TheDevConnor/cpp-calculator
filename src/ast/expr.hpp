@@ -36,6 +36,21 @@ struct Ident : public Node::Expr {
                        std::map<std::string, llvm::Value *> &) const override;
 };
 
+struct String : public Node::Expr {
+public:
+  std::string value;
+
+  String(std::string value) : value(value) { kind = NodeKind::string; }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "String Node: " << value << std::endl;
+  }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};
+
 struct Binary : public Node::Expr {
 public:
   Node::Expr *left;

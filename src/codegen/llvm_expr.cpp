@@ -22,6 +22,15 @@ Ident::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
 }
 
 llvm::Value *
+String::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                 std::map<std::string, llvm::Value *> &namedValues) const {
+  (void)namedValues; 
+  (void)ctx;  
+  llvm::Value *str = builder.CreateGlobalStringPtr(value);
+  return str;
+}
+
+llvm::Value *
 Binary::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                 std::map<std::string, llvm::Value *> &namedValues) const {
   llvm::Value *l = left->codegen(ctx, builder, namedValues);

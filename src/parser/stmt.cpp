@@ -6,8 +6,13 @@
 
 Node::Stmt *Parser::parse_stmt(PStruct *psr) {
   switch (psr->current().kind) {
+  case Lexer::Kind::_module:
+    return module_stmt(psr);
   case Lexer::Kind::var:
     return var_stmt(psr);
+  case Lexer::Kind::print:
+  case Lexer::Kind::println:
+    return print_stmt(psr);
   case Lexer::Kind::_const:
     return const_stmt(psr);
   case Lexer::Kind::_return:
@@ -17,6 +22,17 @@ Node::Stmt *Parser::parse_stmt(PStruct *psr) {
   default:
     return expr_stmt(psr);
   }
+}
+
+Node::Stmt *Parser::module_stmt(PStruct *psr) {
+  psr->expect(Lexer::Kind::_module,
+              "Expected the @module keyword to define the module");
+  std::string name =
+      psr->expect(Lexer::Kind::ident, "Expected a name for the module").value;
+  psr->expect(Lexer::Kind::semicolon,
+              "Expected ';' at the end of the module stmt");
+
+  return psr->arena.emplace<ModuleStmt>(name);
 }
 
 Node::Stmt *Parser::expr_stmt(PStruct *psr) {
@@ -47,6 +63,29 @@ Node::Stmt *Parser::const_stmt(PStruct *psr) {
 
   return nullptr;
 };
+
+Node::Stmt *Parser::print_stmt(PStruct *psr) {
+  bool is_ln = psr->current().kind == Lexer::Kind::println;
+  if (is_ln)
+    psr->expect(Lexer::Kind::println, "Expected the keyword 'println' to start a print stmt");
+  else
+    psr->expect(Lexer::Kind::print, "Expected the keyword 'print' to start a print stmt");
+  psr->expect(Lexer::Kind::l_paren, "Expected an '(' to start the print stmt args");
+  
+  Node::Expr *fd = parse_expr(psr, BindingPower::default_value);
+  psr->expect(Lexer::Kind::comma, "Expected a ',' after the file descriptor");
+
+  std::vector<Node::Expr *> args;
+  while (psr->current().kind != Lexer::Kind::r_paren) {
+    args.push_back(parse_expr(psr, BindingPower::default_value));
+    if (psr->current().kind == Lexer::Kind::r_paren) break;
+    psr->expect(Lexer::Kind::comma, "Expected a ',' after an argument in the print stmt");
+  }
+  psr->expect(Lexer::Kind::r_paren, "Expected a ')' to end the print stmt args");
+  psr->expect(Lexer::Kind::semicolon, "Expected a ';' at the end of the print stmt");
+
+  return psr->arena.emplace<PrintStmt>(fd, is_ln, args, psr->arena);
+}
 
 Node::Stmt *Parser::fn_stmt(PStruct *psr, std::string name) {
   psr->expect(Lexer::Kind::fn,

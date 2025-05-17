@@ -109,11 +109,28 @@ Token Lexer::lexer::scan_token() {
 
   char c = advance();
 
+  if (c == '@')
+    return make_token(builtins[identifier(whitespace_count).value],
+                      whitespace_count);
+
   if (isdigit(c))
     return number(whitespace_count);
 
   if (isalpha(c))
     return identifier(whitespace_count);
+
+  if (c == '"') {
+    while (peek(0) != '"' && !is_at_end()) {
+      if (peek(0) == '\n') {
+        Error::handle_lexer_error(*this, "Lexical", "math.xi",
+                                  "Unterminated string");
+        return make_token(Kind::unknown, whitespace_count);
+      }
+      advance();
+    }
+    advance();
+    return make_token(Kind::string, whitespace_count);
+  }
 
   char next = peek(0);
   if (auto kind2 = lookup_kind(c, next)) {

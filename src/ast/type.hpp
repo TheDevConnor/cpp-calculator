@@ -6,7 +6,7 @@
 #include "ast.hpp"
 
 class SymbolType : public Node::Type {
- public:
+public:
   std::string name;
 
   SymbolType(std::string name) : name(name) { kind = NodeKind::symbol_type; }
@@ -15,4 +15,6 @@ class SymbolType : public Node::Type {
     (void)indent;
     std::cout << "TYPE: " << name;
   }
+
+  llvm::Type *codegen(llvm::LLVMContext &ctx) const override;
 };

@@ -1,4 +1,6 @@
 #include "../ast/stmt.hpp"
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
 
 llvm::Value *
 ProgramStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
@@ -13,42 +15,110 @@ ProgramStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
 }
 
 llvm::Value *
+ModuleStmt ::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                     llvm::Module &module,
+                     std::map<std::string, llvm::Value *> &namedValues) const {
+  (void)ctx;
+  (void)builder;
+  (void)module;
+  (void)namedValues;
+
+  module.setModuleIdentifier(name);
+
+  return llvm::Constant::getNullValue(
+      llvm::Type::getInt64Ty(ctx)); // dummy return
+}
+
+llvm::Value *
 FnStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                 llvm::Module &module,
-                std::map<std::string, llvm::Value *> &namedValues) const {
-  std::vector<llvm::Type *> argTypes(size, llvm::Type::getInt64Ty(ctx));
-  llvm::FunctionType *funcType =
-      llvm::FunctionType::get(llvm::Type::getInt64Ty(ctx), argTypes, false);
+                std::map<std::string, llvm::Value *> &locals) const {
+  llvm::Type *ret_type = return_type->codegen(ctx);
 
-  llvm::Function *function = llvm::Function::Create(
-      funcType, llvm::Function::ExternalLinkage, name, module);
+  std::vector<llvm::Type *> param_types;
+  for (size_t i = 0; i < size; ++i)
+    param_types.push_back(args_type[i]->codegen(ctx));
 
-  unsigned idx = 0;
-  for (auto &arg : function->args()) {
+  llvm::FunctionType *fn_type =
+      llvm::FunctionType::get(ret_type, param_types, false);
+
+  llvm::Function *fn = llvm::Function::Create(
+      fn_type, llvm::Function::ExternalLinkage, name, module);
+
+  // Create new entry block
+  llvm::BasicBlock *entry = llvm::BasicBlock::Create(ctx, "entry", fn);
+  builder.SetInsertPoint(entry);
+
+  // Set up function arguments
+  size_t idx = 0;
+  for (auto &arg : fn->args()) {
     arg.setName(args[idx]);
-    ++idx;
-  }
 
-  llvm::BasicBlock *blockBB = llvm::BasicBlock::Create(ctx, "entry", function);
-  builder.SetInsertPoint(blockBB);
-
-  namedValues.clear();
-  idx = 0;
-  for (auto &arg : function->args()) {
     llvm::AllocaInst *alloca =
-        builder.CreateAlloca(llvm::Type::getInt64Ty(ctx), 0, arg.getName());
+        builder.CreateAlloca(arg.getType(), nullptr, args[idx]);
     builder.CreateStore(&arg, alloca);
-    namedValues[arg.getName().str()] = alloca;
-    ++idx;
+    locals[args[idx]] = alloca;
+
+    idx++;
   }
 
-  if (!block->codegen(ctx, builder, module, namedValues))
+  // Emit function body
+  block->codegen(ctx, builder, module, locals);
+
+  // If no return statement, emit default return (void or 0)
+  if (!builder.GetInsertBlock()->getTerminator()) {
+    if (ret_type->isVoidTy())
+      builder.CreateRetVoid();
+    else
+      builder.CreateRet(llvm::Constant::getNullValue(ret_type));
+  }
+
+  return fn;
+}
+
+llvm::Value *PrintStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                                llvm::Module &module,
+                                std::map<std::string, llvm::Value *> &namedValues) const {
+  llvm::Value *fd_val = fd->codegen(ctx, builder, namedValues);
+  if (!fd_val)
     return nullptr;
+  
+  // For now, we only handle one argument
+  llvm::Value *msg_val = args[0]->codegen(ctx, builder, namedValues);
 
-  if (builder.GetInsertBlock()->getTerminator() == nullptr)
-    builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx), 0));
+  llvm::StringRef raw_str;
+  if (auto *global = llvm::dyn_cast<llvm::GlobalVariable>(msg_val)) {
+    if (auto *data = llvm::dyn_cast<llvm::ConstantDataArray>(global->getInitializer())) {
+      raw_str = data->getAsCString();
+    }
+  }
 
-  return function;
+  std::string str_to_print = raw_str.str();
+  if (is_ln && !str_to_print.empty()) {
+    str_to_print[str_to_print.size() - 1] = '\n';
+  }
+
+  llvm::Value *str_ptr = builder.CreateGlobalStringPtr(str_to_print);
+  llvm::Value *len_val = builder.getInt64(str_to_print.size());
+
+  // Declare write once
+  llvm::Function *write_fn = module.getFunction("write");
+  if (!write_fn) {
+    llvm::FunctionType *write_type = llvm::FunctionType::get(
+        llvm::Type::getInt64Ty(ctx),
+        // fd, str, len
+        {llvm::Type::getInt32Ty(ctx), llvm::Type::getInt8Ty(ctx)->getPointerTo(),
+         llvm::Type::getInt64Ty(ctx)},
+        false);
+    // Create the function
+    write_fn = llvm::Function::Create(write_type, llvm::Function::ExternalLinkage, "write", module);
+  }
+
+  // Cast fd to i32 if needed
+  if (fd_val->getType()->getIntegerBitWidth() != 32)
+    fd_val = builder.CreateTrunc(fd_val, llvm::Type::getInt32Ty(ctx));
+
+  return builder.CreateCall(write_fn, {fd_val, str_ptr, len_val});
 }
 
 llvm::Value *
@@ -67,6 +137,7 @@ llvm::Value *
 ExprStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                   llvm::Module &module,
                   std::map<std::string, llvm::Value *> &namedValues) const {
+  (void) module;
   return expr->codegen(ctx, builder, namedValues); // discard result
 }
 
@@ -74,12 +145,13 @@ llvm::Value *
 VarStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                  llvm::Module &module,
                  std::map<std::string, llvm::Value *> &namedValues) const {
+  (void) module;
   llvm::Value *initVal = expr->codegen(ctx, builder, namedValues);
   if (!initVal)
     return nullptr;
 
   llvm::AllocaInst *alloca =
-      builder.CreateAlloca(llvm::Type::getInt64Ty(ctx), 0, name);
+      builder.CreateAlloca(type->codegen(ctx), nullptr, name);
   builder.CreateStore(initVal, alloca);
   namedValues[name] = alloca;
 
@@ -90,6 +162,7 @@ llvm::Value *
 ReturnStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                     llvm::Module &module,
                     std::map<std::string, llvm::Value *> &namedValues) const {
+  (void) module;
   if (!expr) {
     builder.CreateRetVoid();
     return nullptr;

@@ -8,6 +8,7 @@ namespace Lexer {
 enum Kind {
   number,
   ident,
+  string,
   plus,
   minus,
   star,
@@ -41,6 +42,22 @@ enum Kind {
   _const,
   _return,
   fn,
+  _module,
+  _use,
+  print,
+  println,
+  _alloc,
+  _free,
+  memcpy,
+  _sizeof,
+  cast,
+  _if,
+  _else,
+  _struct,
+  _enum,
+  pub,
+  priv,
+  loop,
 
   eof,
   unknown,
@@ -67,11 +84,24 @@ private:
   const char *start;
   const char *source;
 
+  std::unordered_map<std::string, Kind> builtins = {
+      {"@module", Kind::_module}, {"@use", Kind::_use},
+      {"@output", Kind::print},   {"@outputln", println},
+      {"@alloc", Kind::_alloc},   {"@free", Kind::_free},
+      {"@memcpy", Kind::memcpy},  {"@sizeof", Kind::_sizeof},
+      {"@cast", Kind::cast},
+  };
+
   std::unordered_map<std::string, Kind> keywords = {
-      {"uint", _uint},     {"int", _int},     {"float", _float},
-      {"char", _char},     {"bool", _bool},   {"str", _str},
-      {"have", var},       {"const", _const}, {"fn", fn},
-      {"return", _return},
+      {"uint", Kind::_uint},     {"int", Kind::_int},
+      {"float", Kind::_float},   {"char", Kind::_char},
+      {"bool", Kind::_bool},     {"str", Kind::_str},
+      {"have", Kind::var},       {"const", Kind::_const},
+      {"fn", Kind::fn},          {"return", Kind::_return},
+      {"if", Kind::_if},         {"else", Kind::_else},
+      {"struct", Kind::_struct}, {"enum", Kind::_enum},
+      {"pub", Kind::pub},        {"priv", Kind::priv},
+      {"loop", Kind::loop},
   };
 
   static constexpr std::pair<char, Kind> token_map[] = {

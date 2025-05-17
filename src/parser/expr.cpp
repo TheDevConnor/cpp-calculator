@@ -19,6 +19,8 @@ Node::Expr *Parser::primary(PStruct *psr) {
     return psr->arena.emplace<Number>(psr->advance().value);
   case Lexer::Kind::ident:
     return psr->arena.emplace<Ident>(psr->advance().value);
+  case Lexer::Kind::string:
+    return psr->arena.emplace<String>(psr->advance().value);
   default:
     std::cerr << "Could not parse primary expr '" << psr->current().value << "'"
               << std::endl;

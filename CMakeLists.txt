@@ -27,6 +27,7 @@ set(ZURA2_SOURCE_FILES
 
     src/codegen/llvm_stmt.cpp
     src/codegen/llvm_expr.cpp
+    src/codegen/llvm_type.cpp
 )
 
 # Create executable
