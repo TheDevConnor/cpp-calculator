@@ -14,6 +14,16 @@ enum NodeKind {
   unary,
   group,
   _call,
+  _index,
+  assign,
+  member,
+  dereference,
+  address,
+  cast, 
+  size_of,
+  alloc,
+  _free,
+  _memcpy,
   module_stmt,
   expr_stmt,
   var_stmt,
@@ -21,6 +31,10 @@ enum NodeKind {
   fn_stmt,
   block_stmt,
   print_stmt,
+  loop_stmt,
+  if_stmt,
+  struct_stmt,
+  enum_stmt,
 };
 
 class Node {

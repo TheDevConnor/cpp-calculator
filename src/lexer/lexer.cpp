@@ -88,6 +88,10 @@ int Lexer::lexer::skip_whitespace() {
       advance();
       count++;
       break;
+    case '#':
+      while (peek(0) != '\n' && !is_at_end())
+        advance();
+      break;
     default:
       return count;
     }
