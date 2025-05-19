@@ -175,10 +175,57 @@ public:
                        std::map<std::string, llvm::Value *> &) const override;
 };
 
+/* Possable loop variations
+ * loop (i = 0; i < 10) : (i++) {}
+ * loop (i = 0; i < 10) {}
+ * loop (i < 10) : (i++) {}
+ * loop (i < 10) {}
+ */
+
+struct LoopStmt : public Node::Stmt {
+  bool is_for;
+  Node::Expr *init;
+  Node::Expr *condition;
+  Node::Expr *optional;
+  Node::Stmt *block;
+
+  LoopStmt(bool is_for, Node::Expr *init, Node::Expr *condition,
+           Node::Expr *optional, Node::Stmt *block)
+      : is_for(is_for), init(init), condition(condition), optional(optional),
+        block(block) {
+    kind = NodeKind::loop_stmt;
+  }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "LOOP_STMT: \n";
+    std::cout << "     is_for: " << is_for << "\n";
+    if (init != nullptr) {
+      std::cout << "     init: ";
+      init->debug();
+    }
+    if (condition != nullptr) {
+      std::cout << "     condition: ";
+      condition->debug();
+    }
+    if (optional != nullptr) {
+      std::cout << "     optional: ";
+      optional->debug();
+    }
+    if (block != nullptr) {
+      std::cout << "     block: ";
+      block->debug();
+    }
+  }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &, llvm::Module &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};
+
 struct PrintStmt : public Node::Stmt {
-public: 
+public:
   Node::Expr *fd; // file descriptor
-  bool is_ln; // is it a newline?
+  bool is_ln;     // is it a newline?
   Node::Expr **args;
   std::size_t size;
 
@@ -203,7 +250,7 @@ public:
       }
     }
   }
-  
+
   llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &, llvm::Module &,
                        std::map<std::string, llvm::Value *> &) const override;
 };

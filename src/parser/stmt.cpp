@@ -19,6 +19,8 @@ Node::Stmt *Parser::parse_stmt(PStruct *psr) {
     return return_stmt(psr);
   case Lexer::Kind::l_brace:
     return block_stmt(psr);
+  case Lexer::Kind::loop:
+    return loop_stmt(psr);
   default:
     return expr_stmt(psr);
   }
@@ -67,22 +69,29 @@ Node::Stmt *Parser::const_stmt(PStruct *psr) {
 Node::Stmt *Parser::print_stmt(PStruct *psr) {
   bool is_ln = psr->current().kind == Lexer::Kind::println;
   if (is_ln)
-    psr->expect(Lexer::Kind::println, "Expected the keyword 'println' to start a print stmt");
+    psr->expect(Lexer::Kind::println,
+                "Expected the keyword 'println' to start a print stmt");
   else
-    psr->expect(Lexer::Kind::print, "Expected the keyword 'print' to start a print stmt");
-  psr->expect(Lexer::Kind::l_paren, "Expected an '(' to start the print stmt args");
-  
+    psr->expect(Lexer::Kind::print,
+                "Expected the keyword 'print' to start a print stmt");
+  psr->expect(Lexer::Kind::l_paren,
+              "Expected an '(' to start the print stmt args");
+
   Node::Expr *fd = parse_expr(psr, BindingPower::default_value);
   psr->expect(Lexer::Kind::comma, "Expected a ',' after the file descriptor");
 
   std::vector<Node::Expr *> args;
   while (psr->current().kind != Lexer::Kind::r_paren) {
     args.push_back(parse_expr(psr, BindingPower::default_value));
-    if (psr->current().kind == Lexer::Kind::r_paren) break;
-    psr->expect(Lexer::Kind::comma, "Expected a ',' after an argument in the print stmt");
+    if (psr->current().kind == Lexer::Kind::r_paren)
+      break;
+    psr->expect(Lexer::Kind::comma,
+                "Expected a ',' after an argument in the print stmt");
   }
-  psr->expect(Lexer::Kind::r_paren, "Expected a ')' to end the print stmt args");
-  psr->expect(Lexer::Kind::semicolon, "Expected a ';' at the end of the print stmt");
+  psr->expect(Lexer::Kind::r_paren,
+              "Expected a ')' to end the print stmt args");
+  psr->expect(Lexer::Kind::semicolon,
+              "Expected a ';' at the end of the print stmt");
 
   return psr->arena.emplace<PrintStmt>(fd, is_ln, args, psr->arena);
 }
@@ -164,4 +173,21 @@ Node::Stmt *Parser::return_stmt(PStruct *psr) {
   psr->expect(Lexer::Kind::semicolon,
               "Expected a ';' at the end of a return stmt");
   return psr->arena.emplace<ReturnStmt>(expr);
+}
+
+/* Possable loop variations
+ * loop (i = 0; i < 10) : (i++) {}
+ * loop (i = 0; i < 10) {}
+ * loop (i < 10) : (i++) {}
+ * loop (i < 10) {}
+ */
+
+Node::Stmt *Parser::loop_stmt(PStruct *psr) {
+  psr->expect(Lexer::Kind::loop, "Expected a 'loop' keyword to start a loop");
+  psr->expect(Lexer::Kind::l_paren, "Expected a '(' to start a loop");
+
+  bool is_for = false;
+  Node::Expr *init = nullptr;
+  Node::Expr *condition = nullptr;
+  Node::Expr *optional = nullptr;
 }

@@ -5,6 +5,7 @@
 #include <llvm/IR/Value.h>
 #include <string>
 
+#include "../lexer/lexer.hpp"
 #include "ast.hpp"
 
 struct Number : public Node::Expr {
@@ -137,6 +138,34 @@ public:
     std::cout << "Call: " << name << std::endl;
     for (auto arg : args) {
       arg->debug();
+    }
+  }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};
+
+struct Assign : public Node::Expr {
+  Lexer::Token op;
+  Node::Expr *left;
+  Node::Expr *right;
+
+  Assign(Lexer::Token op, Node::Expr *left, Node::Expr *right)
+      : op(op), left(left), right(right) {
+    kind = NodeKind::assign;
+  }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "Assign: \n";
+    std::cout << "    op: " << op.value << "\n";
+    std::cout << "    left: ";
+    if (left != nullptr) {
+      left->debug();
+    }
+    std::cout << "    right: ";
+    if (right != nullptr) {
+      right->debug();
     }
   }
 

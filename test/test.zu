@@ -1,7 +1,7 @@
 @module main;
 
 const main := fn () int {
-    @outputln(1, "Hello, World!");
-    # return stmt is not required it is implied for main
-    # return 0;
+    loop (i = 0; i < 10) {
+        @outputln(1, i);
+    }
 };

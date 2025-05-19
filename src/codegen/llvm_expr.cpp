@@ -23,9 +23,9 @@ Ident::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
 
 llvm::Value *
 String::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
-                 std::map<std::string, llvm::Value *> &namedValues) const {
-  (void)namedValues; 
-  (void)ctx;  
+                std::map<std::string, llvm::Value *> &namedValues) const {
+  (void)namedValues;
+  (void)ctx;
   llvm::Value *str = builder.CreateGlobalStringPtr(value);
   return str;
 }
@@ -112,4 +112,10 @@ llvm::Value *
 Group::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                std::map<std::string, llvm::Value *> &namedValues) const {
   return expr->codegen(ctx, builder, namedValues);
+}
+
+llvm::Value *
+Assign::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                std::map<std::string, llvm::Value *> &namedValues) const {
+  return nullptr; // TODO: Do this at a later date
 }

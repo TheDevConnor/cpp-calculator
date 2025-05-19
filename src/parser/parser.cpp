@@ -29,6 +29,15 @@ Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
     return BindingPower::multiplicative;
   case Lexer::Kind::l_paren:
     return BindingPower::call;
+  case Lexer::Kind::equal_equal:
+  case Lexer::Kind::not_equal:
+  case Lexer::Kind::greater_equal:
+  case Lexer::Kind::less_equal:
+  case Lexer::Kind::greater:
+  case Lexer::Kind::less:
+    return BindingPower::comparison;
+  case Lexer::Kind::equals:
+    return BindingPower::assignment;
   default:
     return BindingPower::default_value;
   }
@@ -57,9 +66,17 @@ Node::Expr *Parser::led(PStruct *psr, Node::Expr *left, BindingPower bp) {
   case Lexer::Kind::star:
   case Lexer::Kind::slash:
   case Lexer::Kind::mod:
+  case Lexer::Kind::equal_equal:
+  case Lexer::Kind::not_equal:
+  case Lexer::Kind::greater_equal:
+  case Lexer::Kind::less_equal:
+  case Lexer::Kind::greater:
+  case Lexer::Kind::less:
     return binary(psr, left, bp);
   case Lexer::Kind::l_paren:
     return _call(psr, left, bp);
+  case Lexer::Kind::equals:
+    return assign(psr, left, bp);
   default:
     psr->advance();
     return left;

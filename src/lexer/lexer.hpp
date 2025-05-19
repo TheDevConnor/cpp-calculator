@@ -22,8 +22,10 @@ enum Kind {
   comma,
   equal_equal,
   less_equal,
+  less,
   not_equal,
   greater_equal,
+  greater,
   l_bracket, // [
   r_bracket, // ]
   l_brace,   // {
@@ -110,6 +112,7 @@ private:
       {')', Kind::r_paren},   {';', Kind::semicolon}, {',', Kind::comma},
       {'{', Kind::l_brace},   {'}', Kind::r_brace},   {'[', Kind::l_bracket},
       {']', Kind::r_bracket}, {':', Kind::colon},     {'=', Kind::equals},
+      {'<', Kind::less},      {'>', Kind::greater},
   };
 
   static constexpr std::pair<std::string_view, Kind> double_token_map[] = {

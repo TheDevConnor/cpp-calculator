@@ -60,3 +60,12 @@ Node::Expr *Parser::_call(PStruct *psr, Node::Expr *left, BindingPower bp) {
   psr->advance(); // consume the )
   return psr->arena.emplace<Call>(left, args);
 }
+
+Node::Expr *Parser::assign(PStruct *psr, Node::Expr *left, BindingPower bp) {
+  (void)bp;
+
+  Lexer::Token op = psr->current();
+  Node::Expr *right = parse_expr(psr, BindingPower::default_value);
+
+  return psr->arena.emplace<Assign>(op, left, right);
+}
