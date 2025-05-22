@@ -36,6 +36,9 @@ Parser::BindingPower Parser::get_bp(Lexer::Kind kind) {
   case Lexer::Kind::greater:
   case Lexer::Kind::less:
     return BindingPower::comparison;
+  case Lexer::Kind::increment:
+  case Lexer::Kind::decrement:
+    return BindingPower::prefix; // right associative
   case Lexer::Kind::equals:
     return BindingPower::assignment;
   default:
@@ -77,6 +80,9 @@ Node::Expr *Parser::led(PStruct *psr, Node::Expr *left, BindingPower bp) {
     return _call(psr, left, bp);
   case Lexer::Kind::equals:
     return assign(psr, left, bp);
+  case Lexer::Kind::increment:
+  case Lexer::Kind::decrement:
+    return _prefix(psr, left, bp);
   default:
     psr->advance();
     return left;

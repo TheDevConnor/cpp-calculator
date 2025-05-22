@@ -79,6 +79,7 @@ Node::Expr *grouping(PStruct *psr);
 Node::Expr *binary(PStruct *psr, Node::Expr *left, BindingPower bp);
 Node::Expr *_call(PStruct *psr, Node::Expr *left, BindingPower bp);
 Node::Expr *assign(PStruct *psr, Node::Expr *left, BindingPower bp);
+Node::Expr *_prefix(PStruct *psr, Node::Expr *left, BindingPower bp);
 
 // type functions
 Node::Type *tnud(PStruct *psr);

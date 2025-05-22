@@ -30,6 +30,8 @@ enum Kind {
   r_bracket, // ]
   l_brace,   // {
   r_brace,   // }
+  increment,
+  decrement,
 
   walrus,
 
@@ -118,7 +120,8 @@ private:
   static constexpr std::pair<std::string_view, Kind> double_token_map[] = {
       {"==", Kind::equal_equal}, {"!=", Kind::not_equal},
       {"<=", Kind::less_equal},  {">=", Kind::greater_equal},
-      {":=", Kind::walrus},
+      {":=", Kind::walrus}, {"++", Kind::increment},
+      {"--", Kind::decrement},
   };
 
   char advance();

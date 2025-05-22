@@ -114,39 +114,26 @@ PrintStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
   if (!fd_val)
     return nullptr;
 
-  std::string final_str;
-
-  for (size_t i = 0; i < size; ++i) {
-    llvm::Value *arg_val = args[i]->codegen(ctx, builder, namedValues);
-    if (!arg_val)
-      return nullptr;
-
-    llvm::StringRef raw_str;
-    if (auto *global = llvm::dyn_cast<llvm::GlobalVariable>(arg_val)) {
-      if (auto *data = llvm::dyn_cast<llvm::ConstantDataArray>(
-              global->getInitializer())) {
-        raw_str = data->getAsCString();
-      }
-    }
-
-    std::string interpreted = interpretEscapes(raw_str.str());
-
-    // Remove surrounding quotes if present
-    if (interpreted.size() >= 2 && interpreted.front() == '"' &&
-        interpreted.back() == '"') {
-      interpreted = interpreted.substr(1, interpreted.size() - 2);
-    }
-
-    final_str += interpreted;
-    if (i + 1 < size)
-      final_str += " ";
+  llvm::Function *itoa_fn = module.getFunction("itoa");
+  if (!itoa_fn) {
+    auto *i64Ty = llvm::Type::getInt64Ty(ctx);
+    auto *i8PtrTy = llvm::Type::getInt8Ty(ctx)->getPointerTo();
+    llvm::FunctionType *itoaType =
+        llvm::FunctionType::get(i8PtrTy, {i64Ty, i8PtrTy}, false);
+    itoa_fn = llvm::Function::Create(itoaType, llvm::Function::ExternalLinkage,
+                                     "itoa", module);
   }
 
-  if (is_ln)
-    final_str += "\n";
+  llvm::Function *strlen_fn = module.getFunction("strlen");
+  if (!strlen_fn) {
+    auto *i8PtrTy = llvm::Type::getInt8Ty(ctx)->getPointerTo();
+    llvm::FunctionType *strlenType =
+        llvm::FunctionType::get(llvm::Type::getInt64Ty(ctx), {i8PtrTy}, false);
+    strlen_fn = llvm::Function::Create(
+        strlenType, llvm::Function::ExternalLinkage, "strlen", module);
+  }
 
-  llvm::Value *str_ptr = builder.CreateGlobalStringPtr(final_str);
-  llvm::Value *len_val = builder.getInt64(final_str.size());
+  std::string final_str;
 
   llvm::Function *write_fn = module.getFunction("write");
   if (!write_fn) {
@@ -159,6 +146,68 @@ PrintStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
     write_fn = llvm::Function::Create(
         write_type, llvm::Function::ExternalLinkage, "write", module);
   }
+
+  for (size_t i = 0; i < size; ++i) {
+    llvm::Value *arg_val = args[i]->codegen(ctx, builder, namedValues);
+    if (!arg_val)
+      return nullptr;
+
+    llvm::Type *argType = arg_val->getType();
+    llvm::Value *strPtr = nullptr;
+    llvm::Value *strLen = nullptr;
+
+    // Case 1: Constant string (global)
+    if (auto *global = llvm::dyn_cast<llvm::GlobalVariable>(arg_val)) {
+      if (auto *data = llvm::dyn_cast<llvm::ConstantDataArray>(
+              global->getInitializer())) {
+        std::string interpreted = interpretEscapes(data->getAsCString().str());
+
+        // Remove quotes if present
+        if (interpreted.size() >= 2 && interpreted.front() == '"' &&
+            interpreted.back() == '"') {
+          interpreted = interpreted.substr(1, interpreted.size() - 2);
+        }
+
+        strPtr = builder.CreateGlobalStringPtr(interpreted);
+        strLen = builder.getInt64(interpreted.size());
+      }
+    }
+
+    // Case 2: Integer or non-string value (e.g., variable like i)
+    if (!strPtr) {
+      // Allocate buffer for itoa
+      llvm::Value *buf =
+          builder.CreateAlloca(llvm::ArrayType::get(builder.getInt8Ty(), 21));
+      llvm::Value *bufPtr =
+          builder.CreatePointerCast(buf, llvm::Type::getInt8Ty(ctx)->getPointerTo());
+
+      // Convert value to i64 if needed
+      if (!arg_val->getType()->isIntegerTy(64)) {
+        arg_val =
+            builder.CreateIntCast(arg_val, llvm::Type::getInt64Ty(ctx), true);
+      }
+
+      strPtr = builder.CreateCall(itoa_fn, {arg_val, bufPtr});
+      strLen = builder.CreateCall(strlen_fn, {strPtr});
+    }
+
+    // Emit write(fd, strPtr, strLen)
+    builder.CreateCall(write_fn, {fd_val, strPtr, strLen});
+
+    // Optional space between arguments
+    if (i + 1 < size) {
+      llvm::Value *spaceStr = builder.CreateGlobalStringPtr(" ");
+      builder.CreateCall(write_fn, {fd_val, spaceStr, builder.getInt64(1)});
+    }
+  }
+
+  if (is_ln) {
+    llvm::Value *newline = builder.CreateGlobalStringPtr("\n");
+    builder.CreateCall(write_fn, {fd_val, newline, builder.getInt64(1)});
+  }
+
+  llvm::Value *str_ptr = builder.CreateGlobalStringPtr(final_str);
+  llvm::Value *len_val = builder.getInt64(final_str.size());
 
   if (fd_val->getType()->getIntegerBitWidth() != 32)
     fd_val = builder.CreateTrunc(fd_val, llvm::Type::getInt32Ty(ctx));
@@ -227,6 +276,11 @@ LoopStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
                   std::map<std::string, llvm::Value *> &namedValues) const {
   llvm::Function *function = builder.GetInsertBlock()->getParent();
 
+  // preHeaderBB
+  //   └─> condBB ─┬─> bodyBB ─┬─> stepBB ─┬─> condBB
+  //               │           └───────────┘
+  //               └────────────> afterBB
+
   llvm::BasicBlock *preHeaderBB = builder.GetInsertBlock();
   llvm::BasicBlock *condBB =
       llvm::BasicBlock::Create(ctx, "loop.cond", function);
@@ -262,15 +316,13 @@ LoopStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
   if (block) {
     block->codegen(ctx, builder, module, namedValues);
   }
+  builder.CreateBr(stepBB); // Only one terminator
 
-  builder.CreateBr(stepBB);
-
-  builder.CreateBr(stepBB);
+  builder.SetInsertPoint(stepBB);
   if (optional) {
     optional->codegen(ctx, builder, namedValues);
   }
-
-  builder.CreateBr(condBB);
+  builder.CreateBr(condBB); // Only one terminator
 
   builder.SetInsertPoint(afterBB);
 

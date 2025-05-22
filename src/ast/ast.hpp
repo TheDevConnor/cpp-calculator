@@ -24,6 +24,7 @@ enum NodeKind {
   alloc,
   _free,
   _memcpy,
+  prefix,
   module_stmt,
   expr_stmt,
   var_stmt,

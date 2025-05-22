@@ -202,19 +202,19 @@ struct LoopStmt : public Node::Stmt {
     std::cout << "     is_for: " << is_for << "\n";
     if (init != nullptr) {
       std::cout << "     init: ";
-      init->debug();
+      init->debug(2);
     }
     if (condition != nullptr) {
       std::cout << "     condition: ";
-      condition->debug();
+      condition->debug(2);
     }
     if (optional != nullptr) {
       std::cout << "     optional: ";
-      optional->debug();
+      optional->debug(2);
     }
     if (block != nullptr) {
       std::cout << "     block: ";
-      block->debug();
+      block->debug(2);
     }
   }
 

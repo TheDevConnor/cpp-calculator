@@ -36,9 +36,6 @@ add_executable(zura2 ${ZURA2_HEADER_FILES} ${ZURA2_SOURCE_FILES})
 
 find_package(LLVM REQUIRED CONFIG)
 
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 

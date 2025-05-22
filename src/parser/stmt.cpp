@@ -184,10 +184,31 @@ Node::Stmt *Parser::return_stmt(PStruct *psr) {
 
 Node::Stmt *Parser::loop_stmt(PStruct *psr) {
   psr->expect(Lexer::Kind::loop, "Expected a 'loop' keyword to start a loop");
-  psr->expect(Lexer::Kind::l_paren, "Expected a '(' to start a loop");
-
+  
   bool is_for = false;
   Node::Expr *init = nullptr;
   Node::Expr *condition = nullptr;
   Node::Expr *optional = nullptr;
+
+  psr->expect(Lexer::Kind::l_paren, "Expected a '(' to start a loop");
+  if (psr->current().kind == Lexer::Kind::ident && psr->peek(1).kind == Lexer::Kind::equals) {
+    is_for = true;
+    init = parse_expr(psr, BindingPower::default_value);
+    psr->expect(Lexer::Kind::semicolon, "Expected a ';' after the init expr");
+    condition = parse_expr(psr, BindingPower::default_value);
+  } else {
+    condition = parse_expr(psr, BindingPower::default_value);
+  }
+  psr->expect(Lexer::Kind::r_paren, "Expected a ')' to end the loop condition");
+
+  if (psr->current().kind == Lexer::Kind::colon) {
+    psr->expect(Lexer::Kind::colon, "Expected a ':' to start the optional expr");
+    psr->expect(Lexer::Kind::l_paren, "Expected a '(' to start the optional expr");
+    optional = parse_expr(psr, BindingPower::default_value);
+    psr->expect(Lexer::Kind::r_paren, "Expected a ')' to end the optional expr");
+  }
+
+  Node::Stmt *block = parse_stmt(psr);
+
+  return psr->arena.emplace<LoopStmt>(is_for, init, condition, optional, block);
 }

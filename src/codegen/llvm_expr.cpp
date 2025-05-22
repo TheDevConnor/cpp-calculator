@@ -1,3 +1,4 @@
+#include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Module.h>
 
 #include "../ast/expr.hpp"
@@ -47,6 +48,24 @@ Binary::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
     return builder.CreateMul(l, r, "multmp");
   else if (op == "/")
     return builder.CreateSDiv(l, r, "divtmp");
+  else if (op == "%")
+    return builder.CreateSRem(l, r, "modtmp");
+  else if (op == "==")
+    return builder.CreateICmpEQ(l, r, "eqtmp");
+  else if (op == "!=")
+    return builder.CreateICmpNE(l, r, "netmp");
+  else if (op == "<")
+    return builder.CreateICmpSLT(l, r, "lttmp");
+  else if (op == "<=")
+    return builder.CreateICmpSLE(l, r, "letmp");
+  else if (op == ">")
+    return builder.CreateICmpSGT(l, r, "gttmp");
+  else if (op == ">=")
+    return builder.CreateICmpSGE(l, r, "getmp");
+  else if (op == "&&")
+    return builder.CreateAnd(l, r, "andtmp");
+  else if (op == "||")
+    return builder.CreateOr(l, r, "ortmp");
   else {
     std::cerr << "Unknown binary operator: " << op << std::endl;
     return nullptr;
@@ -89,6 +108,36 @@ Call::codegen(llvm::LLVMContext &context, llvm::IRBuilder<> &builder,
 
   // 4. Emit call instruction
   return builder.CreateCall(callee_func, arg_values, "calltmp");
+}
+
+llvm::Value *
+Prefix::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                std::map<std::string, llvm::Value *> &namedValues) const {
+
+  // Assume 'left' is a variable expression with a .name member (e.g., "i")
+  const std::string &varName = static_cast<Ident *>(left)->ident;
+  llvm::Value *ptr = namedValues[varName];
+  if (!ptr) {
+    std::cerr << "Undefined variable in prefix expression: " << varName << std::endl;
+    return nullptr;
+  }
+
+  // You must *explicitly* specify the type of the value being loaded
+  llvm::Type *int64Ty = llvm::Type::getInt64Ty(ctx);
+  llvm::Value *val = builder.CreateLoad(int64Ty, ptr, "loadtmp");
+
+  llvm::Value *newVal = nullptr;
+  if (op == "++")
+    newVal = builder.CreateAdd(val, llvm::ConstantInt::get(int64Ty, 1), "preincrtmp");
+  else if (op == "--")
+    newVal = builder.CreateSub(val, llvm::ConstantInt::get(int64Ty, 1), "predecrtmp");
+  else {
+    std::cerr << "Unknown prefix operator: " << op << std::endl;
+    return nullptr;
+  }
+
+  builder.CreateStore(newVal, ptr);
+  return newVal;
 }
 
 llvm::Value *

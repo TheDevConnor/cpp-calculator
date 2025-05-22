@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Step 2: Link the object file to an executable using clang
-  if (system("clang out.o -o my_program -fPIE") != 0) {
+  if (system("clang out.o libs/*.o -o my_program -fPIE") != 0) {
     std::cerr << "Error linking with clang!" << std::endl;
     return -1;
   }

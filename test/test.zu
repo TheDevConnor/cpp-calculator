@@ -1,7 +1,12 @@
 @module main;
 
 const main := fn () int {
-    loop (i = 0; i < 10) {
-        @outputln(1, i);
+    have i: int = 0;
+    loop (i < 4) : (i++) {
+        @outputln(1, "i: ", i);
+        have j: int = 0;
+        loop (j <= i) : (j++) {
+            @outputln(1, "j: ", j);
+        }
     }
 };

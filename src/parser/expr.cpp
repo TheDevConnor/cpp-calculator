@@ -28,6 +28,12 @@ Node::Expr *Parser::primary(PStruct *psr) {
   }
 }
 
+Node::Expr *Parser::_prefix(PStruct *psr, Node::Expr *left, BindingPower bp) {
+  (void)bp;
+  Lexer::Token op = psr->advance();
+  return psr->arena.emplace<Prefix>(left, op.value);
+}
+
 Node::Expr *Parser::unary(PStruct *psr) {
   Lexer::Token op = psr->advance();
   Node::Expr *right = parse_expr(psr, BindingPower::default_value);

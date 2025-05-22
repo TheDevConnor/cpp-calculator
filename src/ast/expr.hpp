@@ -84,6 +84,31 @@ public:
                        std::map<std::string, llvm::Value *> &) const override;
 };
 
+struct Prefix : public Node::Expr {
+public:
+  Node::Expr *left;
+  std::string op;
+
+  Prefix(Node::Expr *left, std::string op) : left(left), op(op) {
+    kind = NodeKind::prefix;
+  }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "Prefix Node: " << std::endl;
+    std::cout << "     op: " << op << std::endl;
+    if (left == nullptr) {
+    } else {
+      std::cout << "   left: \n\t";
+      left->debug();
+    }
+    std::cout << std::endl;
+  }
+
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};
+
 struct Unary : public Node::Expr {
 public:
   Node::Expr *right;
