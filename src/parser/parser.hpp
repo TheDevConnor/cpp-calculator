@@ -93,6 +93,8 @@ Node::Stmt *var_stmt(PStruct *psr);
 Node::Stmt *const_stmt(PStruct *psr);
 Node::Stmt *print_stmt(PStruct *psr);
 Node::Stmt *fn_stmt(PStruct *psr, std::string name);
+Node::Stmt *enum_stmt(PStruct *psr, std::string name);
+Node::Stmt *struct_stmt(PStruct *psr, std::string name);
 Node::Stmt *block_stmt(PStruct *psr);
 Node::Stmt *return_stmt(PStruct *psr);
 Node::Stmt *loop_stmt(PStruct *psr);

@@ -107,6 +107,32 @@ public:
                        std::map<std::string, llvm::Value *> &) const override;
 };
 
+struct EnumStmt : public Node::Stmt {
+public:
+  std::string name;
+  std::string *enums;
+  std::size_t size;
+
+  EnumStmt(std::string name, const std::vector<std::string> &enums,
+           Allocator::ArenaAllocator &arena) : name(name), size(enums.size()) {
+    this->enums = static_cast<std::string *>(arena.alloc(size * sizeof(std::string), alignof(std::string)));
+    std::copy(enums.begin(), enums.end(), this->enums);
+    kind = enum_stmt;
+  }
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "ENUM_STMT: \n";
+    std::cout << "   name: " << name << "\n";
+    std::cout << "   enums: \n";
+    if (enums != nullptr) {
+      for (std::size_t i = 0; i < size; i++)
+        std::cout << "     " << enums[i] << "\n";
+    }
+  }
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &, llvm::Module &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};
+
 struct BlockStmt : public Node::Stmt {
 public:
   Node::Stmt **stmt;

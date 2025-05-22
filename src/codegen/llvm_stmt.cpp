@@ -78,6 +78,37 @@ FnStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
   return fn;
 }
 
+llvm::Value *
+EnumStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                  llvm::Module &module,
+                  std::map<std::string, llvm::Value *> &namedValues) const {
+  (void)ctx;
+  (void)builder;
+  (void)module;
+  (void)namedValues;
+  std::vector<llvm::Type *> enum_types;
+  for (size_t i = 0; i < size; ++i) {
+    enum_types.push_back(llvm::Type::getInt32Ty(ctx));
+  }
+
+  llvm::StructType *enum_type = llvm::StructType::create(ctx, enum_types, name);
+
+  std::vector<llvm::Constant *> enum_values;
+  for (size_t i = 0; i < size; ++i) {
+    enum_values.push_back(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), i));
+  }
+
+  llvm::Constant *initializer = llvm::ConstantStruct::get(enum_type, enum_values);
+
+  llvm::GlobalVariable *enum_var = new llvm::GlobalVariable(
+      module, enum_type, false, llvm::GlobalValue::ExternalLinkage,
+      initializer, name);
+
+  enum_var->setAlignment(llvm::Align(4));
+  namedValues[name] = enum_var;
+  return enum_var;
+}
+
 static std::string interpretEscapes(const std::string &s) {
   std::string out;
   for (size_t i = 0; i < s.length(); ++i) {

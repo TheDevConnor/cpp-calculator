@@ -57,6 +57,8 @@ Node::Stmt *Parser::const_stmt(PStruct *psr) {
   switch (psr->current().kind) {
   case Lexer::Kind::fn:
     return fn_stmt(psr, name);
+  case Lexer::Kind::_enum:
+    return enum_stmt(psr, name);
   default:
     std::string msg = "Expected a 'const' stmt to lead to either an enum, "
                       "struct, or function";
@@ -133,6 +135,24 @@ Node::Stmt *Parser::fn_stmt(PStruct *psr, std::string name) {
               "Expected a ';' at the end of a function declaration");
 
   return psr->arena.emplace<FnStmt>(name, type, params, block, psr->arena);
+}
+
+Node::Stmt *Parser::enum_stmt(PStruct *psr, std::string name) {
+  psr->expect(Lexer::Kind::_enum, "Expected the keyword 'enum' to start an enum declaration");
+  psr->expect(Lexer::Kind::l_brace, "Expected a '{' to start the enum declaration");
+
+  std::vector<std::string> enums;
+  while (psr->current().kind != Lexer::Kind::r_brace) {
+    std::string ename = psr->expect(Lexer::Kind::ident, "Expected an identifier for the enum").value;
+    enums.push_back(ename);
+    if (psr->current().kind == Lexer::Kind::r_brace)
+      break;
+    psr->expect(Lexer::Kind::comma, "Expected a ',' after an enum in the enum declaration");
+  }
+  psr->expect(Lexer::Kind::r_brace, "Expected a '}' to end the enum declaration");
+  psr->expect(Lexer::Kind::semicolon, "Expected a ';' at the end of the enum declaration");
+
+  return psr->arena.emplace<EnumStmt>(name, enums, psr->arena);
 }
 
 Node::Stmt *Parser::var_stmt(PStruct *psr) {

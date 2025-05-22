@@ -1,13 +1,16 @@
 @module main;
 
+const Kind := enum {
+    None,
+    Int,
+    Float,
+    String,
+    Bool
+};
+
+# TODO: Add in Structs, and member expressions to access them
+# NOTE: Maybe something like Kind::None for non initialized variables
+# NOTE: and maybe x.None for initialized variables
+
 const main := fn () int {
-    have x: int = 5;
-    if (x < 3) return 1;
-    if (x > 10 ) {
-        @outputln(1, "x: ", x, ", and exiting with code: 2");
-        return 2;
-    } else {
-        @outputln(1, "x: ", x, ", and exiting with code: 3");
-        return 3;
-    }
 };
