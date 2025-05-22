@@ -56,6 +56,7 @@ Node::Expr *Parser::binary(PStruct *psr, Node::Expr *left, BindingPower bp) {
 }
 
 Node::Expr *Parser::_call(PStruct *psr, Node::Expr *left, BindingPower bp) {
+  (void)bp;
   psr->advance(); // consume the (
   std::vector<Node::Expr *> args;
   while (psr->current().kind != Lexer::Kind::r_paren) {

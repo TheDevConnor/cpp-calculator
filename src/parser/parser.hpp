@@ -96,4 +96,5 @@ Node::Stmt *fn_stmt(PStruct *psr, std::string name);
 Node::Stmt *block_stmt(PStruct *psr);
 Node::Stmt *return_stmt(PStruct *psr);
 Node::Stmt *loop_stmt(PStruct *psr);
+Node::Stmt *if_stmt(PStruct *psr);
 }; // namespace Parser

@@ -56,6 +56,7 @@ enum Kind {
   _sizeof,
   cast,
   _if,
+  _elif,
   _else,
   _struct,
   _enum,

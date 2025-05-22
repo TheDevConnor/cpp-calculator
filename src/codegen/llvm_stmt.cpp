@@ -328,3 +328,45 @@ LoopStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
 
   return nullptr;
 }
+
+llvm::Value *
+IfStmt::codegen(llvm::LLVMContext &ctx, llvm::IRBuilder<> &builder,
+                llvm::Module &module,
+                std::map<std::string, llvm::Value *> &namedValues) const {
+  llvm::Function *function = builder.GetInsertBlock()->getParent();
+
+  llvm::BasicBlock *thenBB =
+      llvm::BasicBlock::Create(ctx, "if.then", function);
+  llvm::BasicBlock *elseBB =
+      llvm::BasicBlock::Create(ctx, "if.else", function);
+  llvm::BasicBlock *afterBB =
+      llvm::BasicBlock::Create(ctx, "if.after", function);
+
+  llvm::Value *cond_value = condition->codegen(ctx, builder, namedValues);
+  if (!cond_value)
+    return nullptr;
+
+  cond_value = builder.CreateICmpNE(
+      cond_value, llvm::ConstantInt::get(cond_value->getType(), 0),
+      "ifcond");
+
+  builder.CreateCondBr(cond_value, thenBB, elseBB);
+
+  // --- Then block ---
+  builder.SetInsertPoint(thenBB);
+  if (block)
+    block->codegen(ctx, builder, module, namedValues);
+  if (!builder.GetInsertBlock()->getTerminator())
+    builder.CreateBr(afterBB); // only jump if not already returned
+
+  // --- Else block ---
+  builder.SetInsertPoint(elseBB);
+  if (else_block)
+    else_block->codegen(ctx, builder, module, namedValues);
+  if (!builder.GetInsertBlock()->getTerminator())
+    builder.CreateBr(afterBB); // same here
+
+  // --- After block ---
+  builder.SetInsertPoint(afterBB);
+  return llvm::Constant::getNullValue(llvm::Type::getInt64Ty(ctx));
+}

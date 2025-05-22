@@ -273,3 +273,30 @@ public:
   llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &, llvm::Module &,
                        std::map<std::string, llvm::Value *> &) const override;
 };
+
+struct IfStmt : public Node::Stmt {
+public:
+  Node::Expr *condition;
+  Node::Stmt *block;
+  Node::Stmt *else_block;
+
+  IfStmt(Node::Expr *condition, Node::Stmt *block, Node::Stmt *else_block)
+      : condition(condition), block(block), else_block(else_block) {
+    kind = if_stmt;
+  }
+
+  void debug(int indent = 0) const override {
+    (void)indent;
+    std::cout << "IF_STMT: \n";
+    std::cout << "   condition: ";
+    condition->debug();
+    std::cout << "\n   block: ";
+    block->debug(2);
+    if (else_block != nullptr) {
+      std::cout << "\n   else block: ";
+      else_block->debug(2);
+    }
+  }
+  llvm::Value *codegen(llvm::LLVMContext &, llvm::IRBuilder<> &, llvm::Module &,
+                       std::map<std::string, llvm::Value *> &) const override;
+};

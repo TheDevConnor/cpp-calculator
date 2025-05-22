@@ -21,6 +21,8 @@ Node::Stmt *Parser::parse_stmt(PStruct *psr) {
     return block_stmt(psr);
   case Lexer::Kind::loop:
     return loop_stmt(psr);
+  case Lexer::Kind::_if:
+    return if_stmt(psr);
   default:
     return expr_stmt(psr);
   }
@@ -211,4 +213,21 @@ Node::Stmt *Parser::loop_stmt(PStruct *psr) {
   Node::Stmt *block = parse_stmt(psr);
 
   return psr->arena.emplace<LoopStmt>(is_for, init, condition, optional, block);
+}
+
+Node::Stmt *Parser::if_stmt(PStruct *psr) {
+  psr->expect(Lexer::Kind::_if, "Expected an 'if' keyword to start an if stmt");
+  psr->expect(Lexer::Kind::l_paren, "Expected a '(' to start the if condition");
+  Node::Expr *condition = parse_expr(psr, BindingPower::default_value);
+  psr->expect(Lexer::Kind::r_paren, "Expected a ')' to end the if condition");
+
+  Node::Stmt *block = parse_stmt(psr);
+  Node::Stmt *else_block = nullptr;
+
+  if (psr->current().kind == Lexer::Kind::_else) {
+    psr->expect(Lexer::Kind::_else, "Expected an 'else' keyword to start an else stmt");
+    else_block = parse_stmt(psr);
+  }
+
+  return psr->arena.emplace<IfStmt>(condition, block, else_block);
 }
